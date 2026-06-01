@@ -255,7 +255,7 @@ function Index() {
                   <div
                     className={`relative z-10 flex h-full w-full flex-col px-7 ${alignClass}`}
                   >
-                    <div className="mt-auto">
+                    <div>
                       <div
                         className="text-[11px] font-bold tracking-[0.28em]"
                         style={{ color: GOLD }}
