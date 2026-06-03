@@ -136,6 +136,7 @@ function Index() {
         image: null,
         align: s.align,
         gradient: "bottom",
+        imagePos: "center",
       }));
       setSlides(next);
       setActive(0);
