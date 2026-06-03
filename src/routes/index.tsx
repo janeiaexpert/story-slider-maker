@@ -553,22 +553,58 @@ function Index() {
                 </div>
               </Field>
 
-              <Field label="Gradiente (escurece esse lado)">
-                <div className="grid grid-cols-4 gap-2">
-                  {(["top", "bottom", "left", "right"] as const).map((g) => (
+              <Field label="Posição do botão">
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { v: "inline", l: "Junto ao texto" },
+                      { v: "bottom", l: "Rodapé do card" },
+                    ] as const
+                  ).map((opt) => (
                     <button
-                      key={g}
-                      onClick={() => update({ gradient: g })}
-                      className={`rounded-md py-2 text-xs font-semibold capitalize ${
-                        s.gradient === g ? "bg-white text-black" : "bg-white/5 text-white/70"
+                      key={opt.v}
+                      onClick={() => update({ buttonPosition: opt.v })}
+                      className={`flex-1 rounded-md py-2 text-xs font-semibold ${
+                        s.buttonPosition === opt.v ? "bg-white text-black" : "bg-white/5 text-white/70"
                       }`}
                     >
-                      {g === "top" ? "↑" : g === "bottom" ? "↓" : g === "left" ? "←" : "→"} {g}
+                      {opt.l}
                     </button>
                   ))}
                 </div>
               </Field>
 
+              <Field label="Gradiente (direção)">
+                <div className="grid grid-cols-4 gap-2">
+                  {(["top", "bottom", "left", "right"] as const).map((g) => {
+                    const Icon =
+                      g === "top" ? ArrowUp : g === "bottom" ? ArrowDown : g === "left" ? ArrowLeft : ArrowRight;
+                    return (
+                      <button
+                        key={g}
+                        onClick={() => update({ gradient: g })}
+                        className={`inline-flex items-center justify-center gap-1 rounded-md py-2 text-xs font-semibold capitalize ${
+                          s.gradient === g ? "bg-white text-black" : "bg-white/5 text-white/70"
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" /> {g}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+
+              <Field label={`Intensidade do gradiente · ${s.gradientIntensity}%`}>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={s.gradientIntensity}
+                  onChange={(e) => update({ gradientIntensity: Number(e.target.value) })}
+                  className="w-full accent-white"
+                />
+              </Field>
 
               <Field label="Foto de fundo">
                 <label className="block cursor-pointer rounded-md bg-white/5 px-3 py-2 text-center text-xs text-white/70 hover:bg-white/10">
@@ -594,17 +630,21 @@ function Index() {
                       Enquadramento vertical
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      {(["top", "center", "bottom"] as const).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => update({ imagePos: p })}
-                          className={`rounded-md py-2 text-xs font-semibold capitalize ${
-                            s.imagePos === p ? "bg-white text-black" : "bg-white/5 text-white/70"
-                          }`}
-                        >
-                          {p === "top" ? "↑ topo" : p === "bottom" ? "↓ base" : "● centro"}
-                        </button>
-                      ))}
+                      {(["top", "center", "bottom"] as const).map((p) => {
+                        const Icon = p === "top" ? ArrowUp : p === "bottom" ? ArrowDown : Circle;
+                        const label = p === "top" ? "topo" : p === "bottom" ? "base" : "centro";
+                        return (
+                          <button
+                            key={p}
+                            onClick={() => update({ imagePos: p })}
+                            className={`inline-flex items-center justify-center gap-1 rounded-md py-2 text-xs font-semibold ${
+                              s.imagePos === p ? "bg-white text-black" : "bg-white/5 text-white/70"
+                            }`}
+                          >
+                            <Icon className="h-3.5 w-3.5" /> {label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
