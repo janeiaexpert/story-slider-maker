@@ -520,6 +520,26 @@ function Index() {
                     remover foto
                   </button>
                 )}
+                {s.image && (
+                  <div className="mt-3">
+                    <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
+                      Enquadramento vertical
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["top", "center", "bottom"] as const).map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => update({ imagePos: p })}
+                          className={`rounded-md py-2 text-xs font-semibold capitalize ${
+                            s.imagePos === p ? "bg-white text-black" : "bg-white/5 text-white/70"
+                          }`}
+                        >
+                          {p === "top" ? "↑ topo" : p === "bottom" ? "↓ base" : "● centro"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Field>
             </aside>
           </div>
