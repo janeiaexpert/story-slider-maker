@@ -340,7 +340,7 @@ function Index() {
                     {s.image && (
                       <div
                         className="absolute inset-0"
-                        style={{ background: GRADIENTS[s.gradient] }}
+                        style={{ background: gradientFor(s.gradient, s.gradientIntensity) }}
                       />
                     )}
                     <div className={`relative z-10 flex h-full w-full flex-col px-7 pb-20 ${alignClass}`}>
@@ -360,7 +360,7 @@ function Index() {
                         {s.subtitle && (
                           <p className="mt-3 text-[13px] leading-snug text-white/80">{s.subtitle}</p>
                         )}
-                        {s.buttonText && (
+                        {s.buttonText && s.buttonPosition === "inline" && (
                           <div className="mt-5">
                             <div
                               className="w-full rounded-md py-3 text-center text-[13px] font-bold"
@@ -377,6 +377,21 @@ function Index() {
                         )}
                       </div>
                     </div>
+                    {s.buttonText && s.buttonPosition === "bottom" && (
+                      <div className="absolute right-0 bottom-16 left-0 z-10 px-7">
+                        <div
+                          className="w-full rounded-md py-3 text-center text-[13px] font-bold"
+                          style={{ background: GOLD, color: "#111" }}
+                        >
+                          {s.buttonText}
+                        </div>
+                        {s.buttonCaption && (
+                          <div className="mt-2 text-center text-[11px] text-white/60">
+                            {s.buttonCaption}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {/* Footer fixo na parte inferior */}
                     <div className="absolute right-0 bottom-0 left-0 z-10 px-7 pb-5">
                       <div className="flex items-center justify-between text-[11px] text-white/70">
