@@ -25,6 +25,7 @@ type Slide = {
   image: string | null;
   align: "top" | "center" | "bottom";
   gradient: "top" | "bottom" | "left" | "right";
+  imagePos: "top" | "center" | "bottom";
 };
 
 const STORAGE_KEY = "carousel-creator-v1";
@@ -48,6 +49,7 @@ function blankSlides(brand: Brand): Slide[] {
     image: null,
     align: "bottom",
     gradient: "bottom",
+    imagePos: "center",
   }));
 }
 
@@ -81,7 +83,7 @@ function Index() {
       try {
         const data = JSON.parse(raw);
         if (Array.isArray(data) && data.length === 8) {
-          setSlides(data.map((d: Slide) => ({ ...d, gradient: d.gradient ?? "bottom" })));
+          setSlides(data.map((d: Slide) => ({ ...d, gradient: d.gradient ?? "bottom", imagePos: d.imagePos ?? "center" })));
           setView("editor");
         }
       } catch {}
@@ -134,6 +136,7 @@ function Index() {
         image: null,
         align: s.align,
         gradient: "bottom",
+        imagePos: "center",
       }));
       setSlides(next);
       setActive(0);
@@ -285,13 +288,16 @@ function Index() {
                       <img
                         src={s.image}
                         alt=""
-                        className="absolute inset-0 h-full w-full object-cover opacity-90"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        style={{ objectPosition: `center ${s.imagePos === "top" ? "0%" : s.imagePos === "bottom" ? "100%" : "50%"}` }}
                       />
                     )}
-                    <div
-                      className="absolute inset-0"
-                      style={{ background: GRADIENTS[s.gradient] }}
-                    />
+                    {s.image && (
+                      <div
+                        className="absolute inset-0"
+                        style={{ background: GRADIENTS[s.gradient] }}
+                      />
+                    )}
                     <div className={`relative z-10 flex h-full w-full flex-col px-7 pb-20 ${alignClass}`}>
                       <div>
                         <div
@@ -513,6 +519,26 @@ function Index() {
                   >
                     remover foto
                   </button>
+                )}
+                {s.image && (
+                  <div className="mt-3">
+                    <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
+                      Enquadramento vertical
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["top", "center", "bottom"] as const).map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => update({ imagePos: p })}
+                          className={`rounded-md py-2 text-xs font-semibold capitalize ${
+                            s.imagePos === p ? "bg-white text-black" : "bg-white/5 text-white/70"
+                          }`}
+                        >
+                          {p === "top" ? "↑ topo" : p === "bottom" ? "↓ base" : "● centro"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </Field>
             </aside>
