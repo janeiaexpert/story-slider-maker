@@ -133,6 +133,7 @@ function Index() {
         author: brand.author,
         image: null,
         align: s.align,
+        gradient: "bottom",
       }));
       setSlides(next);
       setActive(0);
