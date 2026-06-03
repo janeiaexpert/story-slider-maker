@@ -306,7 +306,13 @@ function Index() {
                 className="mt-4 w-full rounded-lg py-3 text-sm font-bold disabled:opacity-50"
                 style={{ background: GOLD, color: "#111" }}
               >
-                {loading ? "Gerando carrossel…" : "✨ Gerar carrossel"}
+                {loading ? (
+                  "Gerando carrossel…"
+                ) : (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <Sparkles className="h-4 w-4" /> Gerar carrossel
+                  </span>
+                )}
               </button>
               <p className="mt-3 text-center text-[11px] text-white/40">
                 A IA estrutura gancho, narrativa, virada e CTA aplicando seu branding.
