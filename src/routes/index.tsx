@@ -118,7 +118,15 @@ function Index() {
       try {
         const data = JSON.parse(raw);
         if (Array.isArray(data) && data.length === 8) {
-          setSlides(data.map((d: Slide) => ({ ...d, gradient: d.gradient ?? "bottom", imagePos: d.imagePos ?? "center" })));
+          setSlides(
+            data.map((d: Slide) => ({
+              ...d,
+              gradient: d.gradient ?? "bottom",
+              gradientIntensity: d.gradientIntensity ?? 70,
+              buttonPosition: d.buttonPosition ?? "inline",
+              imagePos: d.imagePos ?? "center",
+            })),
+          );
           setView("editor");
         }
       } catch {}
