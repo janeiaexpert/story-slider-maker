@@ -290,12 +290,9 @@ function Index() {
                     )}
                     <div
                       className="absolute inset-0"
-                      style={{
-                        background:
-                          "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.85) 100%)",
-                      }}
+                      style={{ background: GRADIENTS[s.gradient] }}
                     />
-                    <div className={`relative z-10 flex h-full w-full flex-col px-7 ${alignClass}`}>
+                    <div className={`relative z-10 flex h-full w-full flex-col px-7 pb-20 ${alignClass}`}>
                       <div>
                         <div
                           className="text-[11px] font-bold tracking-[0.28em]"
@@ -327,21 +324,24 @@ function Index() {
                             )}
                           </div>
                         )}
-                        <div className="mt-5 flex items-center justify-between text-[11px] text-white/60">
-                          <span>
-                            {s.handle} · {s.author}
-                          </span>
-                          <span>{active + 1}/8</span>
-                        </div>
-                        <div
-                          className="mt-2 h-[3px] w-full rounded-full"
-                          style={{
-                            background: `linear-gradient(to right, ${GOLD} ${
-                              ((active + 1) / 8) * 100
-                            }%, rgba(255,255,255,0.15) ${((active + 1) / 8) * 100}%)`,
-                          }}
-                        />
                       </div>
+                    </div>
+                    {/* Footer fixo na parte inferior */}
+                    <div className="absolute right-0 bottom-0 left-0 z-10 px-7 pb-5">
+                      <div className="flex items-center justify-between text-[11px] text-white/70">
+                        <span>
+                          {s.handle} · {s.author}
+                        </span>
+                        <span>{active + 1}/8</span>
+                      </div>
+                      <div
+                        className="mt-2 h-[3px] w-full rounded-full"
+                        style={{
+                          background: `linear-gradient(to right, ${GOLD} ${
+                            ((active + 1) / 8) * 100
+                          }%, rgba(255,255,255,0.15) ${((active + 1) / 8) * 100}%)`,
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
