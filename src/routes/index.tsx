@@ -444,27 +444,29 @@ function Index() {
                 <button
                   onClick={() => setActive((a) => Math.max(0, a - 1))}
                   disabled={active === 0}
-                  className="flex-1 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
                 >
-                  ‹ Anterior
+                  <ChevronLeft className="h-4 w-4" /> Anterior
                 </button>
                 <button
                   onClick={() => setActive((a) => Math.min(7, a + 1))}
                   disabled={active === 7}
-                  className="flex-1 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
                 >
-                  Próximo ›
+                  Próximo <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
               <button
                 onClick={() => exportSlide()}
-                className="mt-2 w-full max-w-[420px] rounded-md py-3 text-sm font-bold"
+                className="mt-2 inline-flex w-full max-w-[420px] items-center justify-center gap-2 rounded-md py-3 text-sm font-bold"
                 style={{ background: GOLD, color: "#111" }}
               >
-                ⬇ Salvar slide {active + 1}
+                <Download className="h-4 w-4" /> Salvar slide {active + 1}
               </button>
               {saved === active && (
-                <div className="mt-2 text-xs text-white/60">✓ Slide {active + 1} salvo!</div>
+                <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-white/60">
+                  <Check className="h-3.5 w-3.5" /> Slide {active + 1} salvo!
+                </div>
               )}
             </div>
 
