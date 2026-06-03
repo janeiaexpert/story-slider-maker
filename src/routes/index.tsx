@@ -2,6 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toPng } from "html-to-image";
+import {
+  Settings2,
+  Plus,
+  Download,
+  Sparkles,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Circle,
+} from "lucide-react";
 import { generateCarousel } from "@/lib/carousel.functions";
 import {
   type Brand,
@@ -25,17 +39,36 @@ type Slide = {
   image: string | null;
   align: "top" | "center" | "bottom";
   gradient: "top" | "bottom" | "left" | "right";
+  gradientIntensity: number;
+  buttonPosition: "inline" | "bottom";
   imagePos: "top" | "center" | "bottom";
 };
 
 const STORAGE_KEY = "carousel-creator-v1";
 
-const GRADIENTS: Record<Slide["gradient"], string> = {
-  top: "linear-gradient(to top, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 45%, rgba(0,0,0,0.85) 100%)",
-  bottom: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.85) 100%)",
-  left: "linear-gradient(to left, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 45%, rgba(0,0,0,0.85) 100%)",
-  right: "linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 45%, rgba(0,0,0,0.85) 100%)",
+const DIR_MAP: Record<Slide["gradient"], string> = {
+  top: "to top",
+  bottom: "to bottom",
+  left: "to left",
+  right: "to right",
 };
+
+function gradientFor(dir: Slide["gradient"], intensity: number) {
+  const a = Math.max(0, Math.min(1, intensity / 100));
+  return `linear-gradient(${DIR_MAP[dir]}, rgba(0,0,0,${(a * 0.3).toFixed(
+    2,
+  )}) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,${a.toFixed(2)}) 100%)`;
+}
+
+function sanitizeTitle(t: string) {
+  return t
+    .replace(/\\n/g, "\n")
+    .replace(/\n{2,}/g, "\n")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join("\n");
+}
 
 function blankSlides(brand: Brand): Slide[] {
   return Array.from({ length: 8 }, () => ({
@@ -49,6 +82,8 @@ function blankSlides(brand: Brand): Slide[] {
     image: null,
     align: "bottom",
     gradient: "bottom",
+    gradientIntensity: 70,
+    buttonPosition: "inline",
     imagePos: "center",
   }));
 }
@@ -83,7 +118,15 @@ function Index() {
       try {
         const data = JSON.parse(raw);
         if (Array.isArray(data) && data.length === 8) {
-          setSlides(data.map((d: Slide) => ({ ...d, gradient: d.gradient ?? "bottom", imagePos: d.imagePos ?? "center" })));
+          setSlides(
+            data.map((d: Slide) => ({
+              ...d,
+              gradient: d.gradient ?? "bottom",
+              gradientIntensity: d.gradientIntensity ?? 70,
+              buttonPosition: d.buttonPosition ?? "inline",
+              imagePos: d.imagePos ?? "center",
+            })),
+          );
           setView("editor");
         }
       } catch {}
@@ -125,9 +168,9 @@ function Index() {
           },
         },
       });
-      const next: Slide[] = result.slides.map((s) => ({
+      const next: Slide[] = result.slides.map((s, i) => ({
         kicker: s.kicker,
-        title: s.title.replace(/\\n/g, "\n"),
+        title: sanitizeTitle(s.title),
         subtitle: s.subtitle,
         buttonText: s.buttonText,
         buttonCaption: s.buttonCaption,
@@ -136,6 +179,8 @@ function Index() {
         image: null,
         align: s.align,
         gradient: "bottom",
+        gradientIntensity: 70,
+        buttonPosition: i === 7 ? "bottom" : "inline",
         imagePos: "center",
       }));
       setSlides(next);
@@ -211,24 +256,24 @@ function Index() {
           <div className="flex gap-2">
             <button
               onClick={() => setShowBrand(true)}
-              className="rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
             >
-              ⚙ Marca
+              <Settings2 className="h-3.5 w-3.5" /> Marca
             </button>
             {view === "editor" && (
               <>
                 <button
                   onClick={newCarousel}
-                  className="rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
                 >
-                  + Novo
+                  <Plus className="h-3.5 w-3.5" /> Novo
                 </button>
                 <button
                   onClick={exportAll}
-                  className="rounded-md px-4 py-2 text-sm font-semibold"
+                  className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold"
                   style={{ background: GOLD, color: "#111" }}
                 >
-                  ⬇ Exportar todos
+                  <Download className="h-4 w-4" /> Exportar todos
                 </button>
               </>
             )}
@@ -261,7 +306,13 @@ function Index() {
                 className="mt-4 w-full rounded-lg py-3 text-sm font-bold disabled:opacity-50"
                 style={{ background: GOLD, color: "#111" }}
               >
-                {loading ? "Gerando carrossel…" : "✨ Gerar carrossel"}
+                {loading ? (
+                  "Gerando carrossel…"
+                ) : (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <Sparkles className="h-4 w-4" /> Gerar carrossel
+                  </span>
+                )}
               </button>
               <p className="mt-3 text-center text-[11px] text-white/40">
                 A IA estrutura gancho, narrativa, virada e CTA aplicando seu branding.
@@ -295,7 +346,7 @@ function Index() {
                     {s.image && (
                       <div
                         className="absolute inset-0"
-                        style={{ background: GRADIENTS[s.gradient] }}
+                        style={{ background: gradientFor(s.gradient, s.gradientIntensity) }}
                       />
                     )}
                     <div className={`relative z-10 flex h-full w-full flex-col px-7 pb-20 ${alignClass}`}>
@@ -315,7 +366,7 @@ function Index() {
                         {s.subtitle && (
                           <p className="mt-3 text-[13px] leading-snug text-white/80">{s.subtitle}</p>
                         )}
-                        {s.buttonText && (
+                        {s.buttonText && s.buttonPosition === "inline" && (
                           <div className="mt-5">
                             <div
                               className="w-full rounded-md py-3 text-center text-[13px] font-bold"
@@ -332,6 +383,21 @@ function Index() {
                         )}
                       </div>
                     </div>
+                    {s.buttonText && s.buttonPosition === "bottom" && (
+                      <div className="absolute right-0 bottom-16 left-0 z-10 px-7">
+                        <div
+                          className="w-full rounded-md py-3 text-center text-[13px] font-bold"
+                          style={{ background: GOLD, color: "#111" }}
+                        >
+                          {s.buttonText}
+                        </div>
+                        {s.buttonCaption && (
+                          <div className="mt-2 text-center text-[11px] text-white/60">
+                            {s.buttonCaption}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {/* Footer fixo na parte inferior */}
                     <div className="absolute right-0 bottom-0 left-0 z-10 px-7 pb-5">
                       <div className="flex items-center justify-between text-[11px] text-white/70">
@@ -378,27 +444,29 @@ function Index() {
                 <button
                   onClick={() => setActive((a) => Math.max(0, a - 1))}
                   disabled={active === 0}
-                  className="flex-1 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
                 >
-                  ‹ Anterior
+                  <ChevronLeft className="h-4 w-4" /> Anterior
                 </button>
                 <button
                   onClick={() => setActive((a) => Math.min(7, a + 1))}
                   disabled={active === 7}
-                  className="flex-1 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
                 >
-                  Próximo ›
+                  Próximo <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
               <button
                 onClick={() => exportSlide()}
-                className="mt-2 w-full max-w-[420px] rounded-md py-3 text-sm font-bold"
+                className="mt-2 inline-flex w-full max-w-[420px] items-center justify-center gap-2 rounded-md py-3 text-sm font-bold"
                 style={{ background: GOLD, color: "#111" }}
               >
-                ⬇ Salvar slide {active + 1}
+                <Download className="h-4 w-4" /> Salvar slide {active + 1}
               </button>
               {saved === active && (
-                <div className="mt-2 text-xs text-white/60">✓ Slide {active + 1} salvo!</div>
+                <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-white/60">
+                  <Check className="h-3.5 w-3.5" /> Slide {active + 1} salvo!
+                </div>
               )}
             </div>
 
@@ -485,22 +553,58 @@ function Index() {
                 </div>
               </Field>
 
-              <Field label="Gradiente (escurece esse lado)">
-                <div className="grid grid-cols-4 gap-2">
-                  {(["top", "bottom", "left", "right"] as const).map((g) => (
+              <Field label="Posição do botão">
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { v: "inline", l: "Junto ao texto" },
+                      { v: "bottom", l: "Rodapé do card" },
+                    ] as const
+                  ).map((opt) => (
                     <button
-                      key={g}
-                      onClick={() => update({ gradient: g })}
-                      className={`rounded-md py-2 text-xs font-semibold capitalize ${
-                        s.gradient === g ? "bg-white text-black" : "bg-white/5 text-white/70"
+                      key={opt.v}
+                      onClick={() => update({ buttonPosition: opt.v })}
+                      className={`flex-1 rounded-md py-2 text-xs font-semibold ${
+                        s.buttonPosition === opt.v ? "bg-white text-black" : "bg-white/5 text-white/70"
                       }`}
                     >
-                      {g === "top" ? "↑" : g === "bottom" ? "↓" : g === "left" ? "←" : "→"} {g}
+                      {opt.l}
                     </button>
                   ))}
                 </div>
               </Field>
 
+              <Field label="Gradiente (direção)">
+                <div className="grid grid-cols-4 gap-2">
+                  {(["top", "bottom", "left", "right"] as const).map((g) => {
+                    const Icon =
+                      g === "top" ? ArrowUp : g === "bottom" ? ArrowDown : g === "left" ? ArrowLeft : ArrowRight;
+                    return (
+                      <button
+                        key={g}
+                        onClick={() => update({ gradient: g })}
+                        className={`inline-flex items-center justify-center gap-1 rounded-md py-2 text-xs font-semibold capitalize ${
+                          s.gradient === g ? "bg-white text-black" : "bg-white/5 text-white/70"
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" /> {g}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+
+              <Field label={`Intensidade do gradiente · ${s.gradientIntensity}%`}>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={s.gradientIntensity}
+                  onChange={(e) => update({ gradientIntensity: Number(e.target.value) })}
+                  className="w-full accent-white"
+                />
+              </Field>
 
               <Field label="Foto de fundo">
                 <label className="block cursor-pointer rounded-md bg-white/5 px-3 py-2 text-center text-xs text-white/70 hover:bg-white/10">
@@ -526,17 +630,21 @@ function Index() {
                       Enquadramento vertical
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      {(["top", "center", "bottom"] as const).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => update({ imagePos: p })}
-                          className={`rounded-md py-2 text-xs font-semibold capitalize ${
-                            s.imagePos === p ? "bg-white text-black" : "bg-white/5 text-white/70"
-                          }`}
-                        >
-                          {p === "top" ? "↑ topo" : p === "bottom" ? "↓ base" : "● centro"}
-                        </button>
-                      ))}
+                      {(["top", "center", "bottom"] as const).map((p) => {
+                        const Icon = p === "top" ? ArrowUp : p === "bottom" ? ArrowDown : Circle;
+                        const label = p === "top" ? "topo" : p === "bottom" ? "base" : "centro";
+                        return (
+                          <button
+                            key={p}
+                            onClick={() => update({ imagePos: p })}
+                            className={`inline-flex items-center justify-center gap-1 rounded-md py-2 text-xs font-semibold ${
+                              s.imagePos === p ? "bg-white text-black" : "bg-white/5 text-white/70"
+                            }`}
+                          >
+                            <Icon className="h-3.5 w-3.5" /> {label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

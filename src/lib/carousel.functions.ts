@@ -74,9 +74,9 @@ ALINHAMENTO:
 - Demais: alternar entre "bottom" e "center" conforme o peso do texto.
 
 LIMITES:
-- kicker: 2 a 4 palavras em CAIXA ALTA.
-- title: 4 a 14 palavras. Use \\n para quebras intencionais. Máximo 4 linhas curtas.
-- subtitle: 0 a 25 palavras.
+- kicker: 2 a 4 palavras em CAIXA ALTA. Sem emojis.
+- title: 4 a 14 palavras. NUNCA use emojis. Use \\n só quando a quebra for tipograficamente intencional. Slide 1 (capa): título em UMA linha única, sem \\n. Demais slides: no máximo 1 \\n.
+- subtitle: 0 a 25 palavras. Sem emojis.
 - Nos slides 1 a 7: buttonText="" e buttonCaption="".
 - No slide 8: buttonText curto (3-7 palavras) e buttonCaption de 4-7 palavras.
 
