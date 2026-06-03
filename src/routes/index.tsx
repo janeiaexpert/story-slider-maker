@@ -288,13 +288,16 @@ function Index() {
                       <img
                         src={s.image}
                         alt=""
-                        className="absolute inset-0 h-full w-full object-cover opacity-90"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        style={{ objectPosition: `center ${s.imagePos === "top" ? "0%" : s.imagePos === "bottom" ? "100%" : "50%"}` }}
                       />
                     )}
-                    <div
-                      className="absolute inset-0"
-                      style={{ background: GRADIENTS[s.gradient] }}
-                    />
+                    {s.image && (
+                      <div
+                        className="absolute inset-0"
+                        style={{ background: GRADIENTS[s.gradient] }}
+                      />
+                    )}
                     <div className={`relative z-10 flex h-full w-full flex-col px-7 pb-20 ${alignClass}`}>
                       <div>
                         <div
