@@ -25,6 +25,7 @@ type Slide = {
   image: string | null;
   align: "top" | "center" | "bottom";
   gradient: "top" | "bottom" | "left" | "right";
+  imagePos: "top" | "center" | "bottom";
 };
 
 const STORAGE_KEY = "carousel-creator-v1";
