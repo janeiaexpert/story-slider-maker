@@ -19,10 +19,19 @@ import {
 import { generateCarousel } from "@/lib/carousel.functions";
 import {
   type Brand,
+  BRAND_PALETTES,
   defaultBrand,
   loadBrand,
   saveBrand,
 } from "@/lib/brand-storage";
+import {
+  type SavedCarousel,
+  deleteCarousel,
+  loadLibrary,
+  newId,
+  upsertCarousel,
+} from "@/lib/carousel-library";
+import { Save, FolderOpen, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Index,
