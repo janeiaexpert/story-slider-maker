@@ -837,6 +837,31 @@ function BrandDialog({
               <option value="viralizacao">Viralização</option>
             </select>
           </Field>
+          <div className="col-span-2">
+            <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
+              Paleta sugerida
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {BRAND_PALETTES.map((p) => {
+                const active = b.primaryColor === p.primary && b.bgColor === p.bg;
+                return (
+                  <button
+                    key={p.name}
+                    onClick={() => setB((s) => ({ ...s, primaryColor: p.primary, bgColor: p.bg }))}
+                    className={`flex flex-col items-stretch overflow-hidden rounded-md border text-[10px] font-semibold transition ${
+                      active ? "border-white" : "border-white/10 hover:border-white/30"
+                    }`}
+                  >
+                    <div className="flex h-8">
+                      <div className="flex-1" style={{ background: p.bg }} />
+                      <div className="flex-1" style={{ background: p.primary }} />
+                    </div>
+                    <div className="px-1 py-1 text-white/70">{p.name}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <Field label="Cor primária">
             <input
               type="color"
