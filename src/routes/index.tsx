@@ -292,6 +292,8 @@ function Index() {
   const newCarousel = () => {
     setInsight("");
     setError(null);
+    setCurrentId(null);
+    setCurrentName("");
     setView("insight");
   };
 
