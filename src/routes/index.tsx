@@ -375,6 +375,12 @@ function Index() {
               )}
             </button>
             <button
+              onClick={() => setShowStyles(true)}
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+            >
+              <Palette className="h-3.5 w-3.5" /> Estilos
+            </button>
+            <button
               onClick={() => setShowBrand(true)}
               className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
             >
@@ -397,10 +403,18 @@ function Index() {
                 </button>
                 <button
                   onClick={exportAll}
-                  className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+                >
+                  <Download className="h-3.5 w-3.5" /> PNGs
+                </button>
+                <button
+                  onClick={exportPdf}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold disabled:opacity-60"
                   style={{ background: GOLD, color: "#111" }}
                 >
-                  <Download className="h-4 w-4" /> Exportar todos
+                  <FileDown className="h-4 w-4" />
+                  {exporting ? "Gerando PDF…" : "Baixar PDF"}
                 </button>
               </>
             )}
