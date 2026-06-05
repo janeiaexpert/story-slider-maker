@@ -359,62 +359,80 @@ function Index() {
               {view === "insight" ? "Cole um insight → IA gera o carrossel" : `${brand.handle} · 8 slides`}
             </h1>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2">
             <button
               onClick={() => {
                 setLibrary(loadLibrary());
                 setShowLibrary(true);
               }}
-              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
             >
-              <FolderOpen className="h-3.5 w-3.5" /> Biblioteca
+              <FolderOpen className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Biblioteca</span>
               {library.length > 0 && (
-                <span className="ml-1 rounded-full bg-white/10 px-1.5 text-[10px]">
+                <span className="ml-0.5 rounded-full bg-white/10 px-1.5 text-[10px]">
                   {library.length}
                 </span>
               )}
             </button>
             <button
               onClick={() => setShowStyles(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
             >
-              <Palette className="h-3.5 w-3.5" /> Estilos
+              <Palette className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Estilos</span>
             </button>
             <button
               onClick={() => setShowBrand(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
             >
-              <Settings2 className="h-3.5 w-3.5" /> Marca
+              <Settings2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Marca</span>
             </button>
             {view === "editor" && (
               <>
                 <button
-                  onClick={newCarousel}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        "Criar um novo carrossel? O atual continua na Biblioteca se você já clicou em Salvar.",
+                      )
+                    ) {
+                      newCarousel();
+                    }
+                  }}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10 disabled:opacity-40"
                 >
-                  <Plus className="h-3.5 w-3.5" /> Novo
+                  <Plus className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Novo</span>
                 </button>
                 <button
                   onClick={handleSaveCarousel}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20"
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-2 text-xs font-semibold hover:bg-white/20 disabled:opacity-40"
                 >
                   <Save className="h-3.5 w-3.5" />
-                  {savedFlash ? "Salvo!" : currentId ? "Atualizar" : "Salvar"}
+                  <span className="hidden sm:inline">
+                    {savedFlash ? "Salvo!" : currentId ? "Atualizar" : "Salvar"}
+                  </span>
                 </button>
                 <button
                   onClick={exportAll}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10 disabled:opacity-40"
                 >
-                  <Download className="h-3.5 w-3.5" /> PNGs
+                  <Download className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">PNGs</span>
                 </button>
                 <button
                   onClick={exportPdf}
                   disabled={exporting}
-                  className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold disabled:opacity-60 sm:px-4 sm:text-sm"
                   style={{ background: GOLD, color: "#111" }}
                 >
                   <FileDown className="h-4 w-4" />
-                  {exporting ? "Gerando PDF…" : "Baixar PDF"}
+                  {exporting ? "Gerando…" : "PDF"}
                 </button>
               </>
             )}
