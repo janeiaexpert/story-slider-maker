@@ -106,10 +106,12 @@ function Index() {
   const [brand, setBrand] = useState<Brand>(defaultBrand);
   const [brandReady, setBrandReady] = useState(false);
   const [showBrand, setShowBrand] = useState(false);
+  const [showStyles, setShowStyles] = useState(false);
   const [view, setView] = useState<"insight" | "editor">("insight");
   const [insight, setInsight] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const [slides, setSlides] = useState<Slide[]>(blankSlides(defaultBrand));
   const [active, setActive] = useState(0);
