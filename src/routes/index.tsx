@@ -296,6 +296,39 @@ function Index() {
     }
   };
 
+  const exportPdf = async () => {
+    setExporting(true);
+    try {
+      // PDF page in mm matching 1080x1350 (4:5)
+      const pageW = 108;
+      const pageH = 135;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [pageW, pageH] });
+      const prevActive = active;
+      for (let i = 0; i < slides.length; i++) {
+        setActive(i);
+        // Wait two frames + a tick for layout/images to settle
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        await new Promise((r) => setTimeout(r, 250));
+        if (!slideRef.current) continue;
+        const dataUrl = await toPng(slideRef.current, {
+          pixelRatio: 2,
+          cacheBust: true,
+        });
+        if (i > 0) pdf.addPage([pageW, pageH], "portrait");
+        pdf.addImage(dataUrl, "PNG", 0, 0, pageW, pageH, undefined, "FAST");
+      }
+      setActive(prevActive);
+      const fname = (currentName.trim() || "carrossel").replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
+      pdf.save(`${fname || "carrossel"}.pdf`);
+    } catch (e) {
+      console.error(e);
+      setError("Falha ao gerar PDF. Tente novamente.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const newCarousel = () => {
     setInsight("");
     setError(null);
