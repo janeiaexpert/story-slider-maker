@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toPng } from "html-to-image";
+import { jsPDF } from "jspdf";
 import {
   Settings2,
   Plus,
@@ -15,11 +16,15 @@ import {
   ArrowLeft,
   ArrowRight,
   Circle,
+  Palette,
+  FileDown,
 } from "lucide-react";
 import { generateCarousel } from "@/lib/carousel.functions";
 import {
   type Brand,
   BRAND_PALETTES,
+  DESIGN_STYLES,
+  type DesignStyle,
   defaultBrand,
   loadBrand,
   saveBrand,
@@ -101,10 +106,12 @@ function Index() {
   const [brand, setBrand] = useState<Brand>(defaultBrand);
   const [brandReady, setBrandReady] = useState(false);
   const [showBrand, setShowBrand] = useState(false);
+  const [showStyles, setShowStyles] = useState(false);
   const [view, setView] = useState<"insight" | "editor">("insight");
   const [insight, setInsight] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const [slides, setSlides] = useState<Slide[]>(blankSlides(defaultBrand));
   const [active, setActive] = useState(0);
@@ -289,6 +296,39 @@ function Index() {
     }
   };
 
+  const exportPdf = async () => {
+    setExporting(true);
+    try {
+      // PDF page in mm matching 1080x1350 (4:5)
+      const pageW = 108;
+      const pageH = 135;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [pageW, pageH] });
+      const prevActive = active;
+      for (let i = 0; i < slides.length; i++) {
+        setActive(i);
+        // Wait two frames + a tick for layout/images to settle
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        await new Promise((r) => setTimeout(r, 250));
+        if (!slideRef.current) continue;
+        const dataUrl = await toPng(slideRef.current, {
+          pixelRatio: 2,
+          cacheBust: true,
+        });
+        if (i > 0) pdf.addPage([pageW, pageH], "portrait");
+        pdf.addImage(dataUrl, "PNG", 0, 0, pageW, pageH, undefined, "FAST");
+      }
+      setActive(prevActive);
+      const fname = (currentName.trim() || "carrossel").replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
+      pdf.save(`${fname || "carrossel"}.pdf`);
+    } catch (e) {
+      console.error(e);
+      setError("Falha ao gerar PDF. Tente novamente.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const newCarousel = () => {
     setInsight("");
     setError(null);
@@ -335,6 +375,12 @@ function Index() {
               )}
             </button>
             <button
+              onClick={() => setShowStyles(true)}
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+            >
+              <Palette className="h-3.5 w-3.5" /> Estilos
+            </button>
+            <button
               onClick={() => setShowBrand(true)}
               className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
             >
@@ -357,10 +403,18 @@ function Index() {
                 </button>
                 <button
                   onClick={exportAll}
-                  className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+                >
+                  <Download className="h-3.5 w-3.5" /> PNGs
+                </button>
+                <button
+                  onClick={exportPdf}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold disabled:opacity-60"
                   style={{ background: GOLD, color: "#111" }}
                 >
-                  <Download className="h-4 w-4" /> Exportar todos
+                  <FileDown className="h-4 w-4" />
+                  {exporting ? "Gerando PDF…" : "Baixar PDF"}
                 </button>
               </>
             )}
@@ -459,7 +513,7 @@ function Index() {
                         </div>
                         <h2
                           className="mt-3 whitespace-pre-line text-[28px] leading-[1.1] font-bold"
-                          style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+                          style={{ fontFamily: brand.fontFamily }}
                         >
                           {s.title}
                         </h2>
@@ -775,6 +829,23 @@ function Index() {
           onClose={() => setShowLibrary(false)}
         />
       )}
+      {showStyles && (
+        <StylesDialog
+          current={brand}
+          onClose={() => setShowStyles(false)}
+          onPick={(style) => {
+            const next: Brand = {
+              ...brand,
+              fontFamily: style.fontFamily,
+              primaryColor: style.primaryColor,
+              bgColor: style.bgColor,
+            };
+            saveBrand(next);
+            setBrand(next);
+            setShowStyles(false);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1006,6 +1077,86 @@ function LibraryDialog({
             })}
           </ul>
         )}
+      </div>
+    </div>
+  );
+}
+
+function StylesDialog({
+  current,
+  onPick,
+  onClose,
+}: {
+  current: Brand;
+  onPick: (s: DesignStyle) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-2xl rounded-2xl bg-[#161616] p-6 ring-1 ring-white/10">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold">Estilos de design</h2>
+            <p className="text-xs text-white/50">
+              Aplica tipografia, cor primária e fundo em todo o carrossel.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-md bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
+          >
+            Fechar
+          </button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {DESIGN_STYLES.map((s) => {
+            const active =
+              current.fontFamily === s.fontFamily &&
+              current.primaryColor === s.primaryColor &&
+              current.bgColor === s.bgColor;
+            return (
+              <button
+                key={s.name}
+                onClick={() => onPick(s)}
+                className={`overflow-hidden rounded-xl border text-left transition ${
+                  active ? "border-white" : "border-white/10 hover:border-white/30"
+                }`}
+              >
+                <div
+                  className="flex h-32 items-end p-4"
+                  style={{ background: s.bgColor }}
+                >
+                  <div>
+                    <div
+                      className="text-[10px] font-bold tracking-[0.28em] uppercase"
+                      style={{ color: s.primaryColor }}
+                    >
+                      kicker
+                    </div>
+                    <div
+                      className="mt-1 text-lg leading-tight font-bold"
+                      style={{
+                        fontFamily: s.fontFamily,
+                        color: s.bgColor.toLowerCase() === "#f5f1ea" ? "#111" : "#fff",
+                      }}
+                    >
+                      Título do slide
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between bg-black/40 px-4 py-3">
+                  <div>
+                    <div className="text-sm font-semibold">{s.name}</div>
+                    <div className="text-[11px] text-white/50">{s.description}</div>
+                  </div>
+                  {active && (
+                    <Check className="h-4 w-4" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
