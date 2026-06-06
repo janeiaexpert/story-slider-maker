@@ -36,7 +36,8 @@ import {
   newId,
   upsertCarousel,
 } from "@/lib/carousel-library";
-import { Save, FolderOpen, Trash2 } from "lucide-react";
+import { getSpaceId, shareUrl, qrUrl, setSpaceId } from "@/lib/space-id";
+import { Save, FolderOpen, Trash2, Share2, Minimize2, Maximize2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -121,6 +122,9 @@ function Index() {
   const [library, setLibrary] = useState<SavedCarousel[]>([]);
   const [showLibrary, setShowLibrary] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [spaceId, setSpaceIdState] = useState<string>("");
   const slideRef = useRef<HTMLDivElement>(null);
 
   const generateFn = useServerFn(generateCarousel);
@@ -152,10 +156,19 @@ function Index() {
         }
       } catch {}
     }
-    setLibrary(loadLibrary());
+    setCompact(localStorage.getItem("carousel-compact-v1") === "1");
+    const sid = getSpaceId();
+    setSpaceIdState(sid);
+    loadLibrary().then(setLibrary);
   }, []);
 
-  const handleSaveCarousel = () => {
+  useEffect(() => {
+    localStorage.setItem("carousel-compact-v1", compact ? "1" : "0");
+  }, [compact]);
+
+  const refreshLibrary = async () => setLibrary(await loadLibrary());
+
+  const handleSaveCarousel = async () => {
     const name =
       currentName.trim() ||
       slides[0]?.title?.split("\n")[0]?.slice(0, 60) ||
@@ -169,7 +182,7 @@ function Index() {
       updatedAt: now,
       slides,
     };
-    const next = upsertCarousel(item);
+    const next = await upsertCarousel(item);
     setLibrary(next);
     setCurrentId(id);
     setCurrentName(name);
@@ -193,8 +206,8 @@ function Index() {
     setShowLibrary(false);
   };
 
-  const handleDeleteCarousel = (id: string) => {
-    const next = deleteCarousel(id);
+  const handleDeleteCarousel = async (id: string) => {
+    const next = await deleteCarousel(id);
     setLibrary(next);
     if (currentId === id) {
       setCurrentId(null);
@@ -268,16 +281,57 @@ function Index() {
     }
   };
 
+  const dataUrlToBlob = (dataUrl: string): Blob => {
+    const [meta, b64] = dataUrl.split(",");
+    const mime = /data:(.*?);base64/.exec(meta)?.[1] ?? "image/png";
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  };
+
+  const savePng = async (dataUrl: string, filename: string) => {
+    try {
+      const blob = dataUrlToBlob(dataUrl);
+      const file = new File([blob], filename, { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      // iOS / Android: share sheet lets user save to Photos / Files reliably
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        try {
+          await (navigator as Navigator & { share: (d: ShareData) => Promise<void> }).share({
+            files: [file],
+            title: filename,
+          });
+          return;
+        } catch {
+          // user cancelled → fall through to download
+        }
+      }
+      // Desktop and fallback
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      // Last resort: open the image in a new tab (mobile long-press → Save Image)
+      const w = window.open();
+      if (w) w.document.write(`<img src="${dataUrl}" style="max-width:100%"/>`);
+      else console.error(e);
+    }
+  };
+
   const exportSlide = async (idx?: number) => {
     const i = idx ?? active;
     if (i !== active) setActive(i);
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 80));
     if (!slideRef.current) return;
     const dataUrl = await toPng(slideRef.current, { pixelRatio: 2, cacheBust: true });
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `slide-${i + 1}.png`;
-    a.click();
+    await savePng(dataUrl, `slide-${i + 1}.png`);
     setSaved(i);
     setTimeout(() => setSaved(null), 1500);
   };
@@ -288,10 +342,7 @@ function Index() {
       await new Promise((r) => setTimeout(r, 200));
       if (!slideRef.current) continue;
       const dataUrl = await toPng(slideRef.current, { pixelRatio: 2, cacheBust: true });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `slide-${i + 1}.png`;
-      a.click();
+      await savePng(dataUrl, `slide-${i + 1}.png`);
       await new Promise((r) => setTimeout(r, 250));
     }
   };
@@ -348,8 +399,8 @@ function Index() {
       : "justify-end pb-12";
 
   return (
-    <div className="min-h-screen text-white" style={{ background: "#111" }}>
-      <div className="mx-auto max-w-7xl px-4 py-6 lg:py-10">
+    <div className={`min-h-screen text-white ${compact ? "text-[13px]" : ""}`} style={{ background: "#111" }}>
+      <div className={`mx-auto max-w-7xl px-3 ${compact ? "py-3" : "px-4 py-6 lg:py-10"}`}>
         <header className="mb-6 flex items-center justify-between gap-3">
           <div>
             <div className="text-xs tracking-[0.25em] uppercase" style={{ color: GOLD }}>
@@ -361,8 +412,23 @@ function Index() {
           </div>
           <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2">
             <button
+              onClick={() => setCompact((c) => !c)}
+              title={compact ? "Modo normal" : "Modo compacto"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
+            >
+              {compact ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
+            </button>
+            <button
+              onClick={() => setShowShare(true)}
+              title="Sincronizar dispositivos"
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Sync</span>
+            </button>
+            <button
               onClick={() => {
-                setLibrary(loadLibrary());
+                refreshLibrary();
                 setShowLibrary(true);
               }}
               className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
@@ -864,6 +930,18 @@ function Index() {
           }}
         />
       )}
+      {showShare && (
+        <ShareDialog
+          spaceId={spaceId}
+          onClose={() => setShowShare(false)}
+          onJoin={async (newId) => {
+            setSpaceId(newId);
+            setSpaceIdState(newId);
+            await refreshLibrary();
+            setShowShare(false);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1174,6 +1252,113 @@ function StylesDialog({
               </button>
             );
           })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShareDialog({
+  spaceId,
+  onClose,
+  onJoin,
+}: {
+  spaceId: string;
+  onClose: () => void;
+  onJoin: (id: string) => void;
+}) {
+  const [joinId, setJoinId] = useState("");
+  const [copied, setCopied] = useState(false);
+  const url = shareUrl(spaceId);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
+
+  const shareNative = async () => {
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (nav.share) {
+      try {
+        await nav.share({ title: "Minha biblioteca de carrosséis", url });
+      } catch {}
+    } else {
+      copy();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/70 p-4 overflow-y-auto">
+      <div className="w-full max-w-md rounded-2xl bg-[#161616] p-6 ring-1 ring-white/10">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold">Sincronizar dispositivos</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
+          >
+            Fechar
+          </button>
+        </div>
+
+        <p className="mb-4 text-xs text-white/60">
+          Abra este link (ou escaneie o QR) em outro dispositivo para usar a mesma biblioteca.
+          Sem login — guarde o link em local seguro: quem tiver acesso vê seus carrosséis.
+        </p>
+
+        <div className="mb-4 flex justify-center rounded-lg bg-white p-3">
+          <img src={qrUrl(url, 220)} alt="QR do espaço" width={220} height={220} />
+        </div>
+
+        <div className="mb-3">
+          <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">Link do espaço</div>
+          <div className="flex gap-2">
+            <input
+              readOnly
+              value={url}
+              onFocus={(e) => e.currentTarget.select()}
+              className="flex-1 rounded-md border border-white/10 bg-black/40 px-3 py-2 text-xs text-white outline-none"
+            />
+            <button
+              onClick={copy}
+              className="rounded-md bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20"
+            >
+              {copied ? "Copiado!" : "Copiar"}
+            </button>
+          </div>
+        </div>
+
+        <button
+          onClick={shareNative}
+          className="mb-5 w-full rounded-md bg-white/5 py-2 text-xs font-semibold hover:bg-white/10"
+        >
+          Compartilhar…
+        </button>
+
+        <div className="mb-2 border-t border-white/10 pt-4">
+          <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
+            Entrar em outro espaço
+          </div>
+          <p className="mb-2 text-[11px] text-white/40">
+            Cole aqui o código de um espaço existente (a parte após <code>?space=</code> do link).
+          </p>
+          <div className="flex gap-2">
+            <input
+              value={joinId}
+              onChange={(e) => setJoinId(e.target.value.trim())}
+              placeholder="código do espaço"
+              className="flex-1 rounded-md border border-white/10 bg-black/40 px-3 py-2 text-xs text-white outline-none focus:border-white/30"
+            />
+            <button
+              disabled={joinId.length < 8}
+              onClick={() => onJoin(joinId)}
+              className="rounded-md bg-white px-3 py-2 text-xs font-bold text-black disabled:opacity-40"
+            >
+              Entrar
+            </button>
+          </div>
         </div>
       </div>
     </div>
