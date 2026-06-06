@@ -57,7 +57,27 @@ type Slide = {
   gradientIntensity: number;
   buttonPosition: "inline" | "bottom";
   imagePos: "top" | "center" | "bottom";
+  titleColor?: string;
+  subtitleColor?: string;
+  kickerColor?: string;
+  highlightColor?: string;
 };
+
+// Renderiza texto com **palavra** destacada em cor de marcador.
+function renderRich(text: string, highlight: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((p, i) => {
+    const m = p.match(/^\*\*([^*]+)\*\*$/);
+    if (m) {
+      return (
+        <span key={i} style={{ color: highlight, fontWeight: 700 }}>
+          {m[1]}
+        </span>
+      );
+    }
+    return <span key={i}>{p}</span>;
+  });
+}
 
 const STORAGE_KEY = "carousel-creator-v1";
 
@@ -591,18 +611,23 @@ function Index() {
                       <div>
                         <div
                           className="text-[11px] font-bold tracking-[0.28em]"
-                          style={{ color: GOLD }}
+                          style={{ color: s.kickerColor ?? GOLD }}
                         >
                           {s.kicker}
                         </div>
                         <h2
                           className="mt-3 whitespace-pre-line text-[28px] leading-[1.1] font-bold"
-                          style={{ fontFamily: brand.fontFamily }}
+                          style={{ fontFamily: brand.fontFamily, color: s.titleColor ?? "#ffffff" }}
                         >
-                          {s.title}
+                          {renderRich(s.title, s.highlightColor ?? GOLD)}
                         </h2>
                         {s.subtitle && (
-                          <p className="mt-3 text-[13px] leading-snug text-white/80">{s.subtitle}</p>
+                          <p
+                            className="mt-3 text-[13px] leading-snug"
+                            style={{ color: s.subtitleColor ?? "rgba(255,255,255,0.8)" }}
+                          >
+                            {renderRich(s.subtitle, s.highlightColor ?? GOLD)}
+                          </p>
                         )}
                         {s.buttonText && s.buttonPosition === "inline" && (
                           <div className="mt-5">
@@ -740,6 +765,27 @@ function Index() {
                   rows={2}
                   className={inputCls}
                 />
+              </Field>
+
+              <Field label="Cores do texto · marque palavras com **palavra**">
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { k: "kickerColor", l: "Kicker", d: GOLD },
+                    { k: "titleColor", l: "Título", d: "#ffffff" },
+                    { k: "subtitleColor", l: "Subtítulo", d: "#cccccc" },
+                    { k: "highlightColor", l: "Marcador", d: GOLD },
+                  ] as const).map((c) => (
+                    <label key={c.k} className="flex flex-col items-center gap-1">
+                      <input
+                        type="color"
+                        value={(s[c.k] as string | undefined) ?? c.d}
+                        onChange={(e) => update({ [c.k]: e.target.value } as Partial<Slide>)}
+                        className="h-8 w-full cursor-pointer rounded bg-transparent"
+                      />
+                      <span className="text-[10px] text-white/60">{c.l}</span>
+                    </label>
+                  ))}
+                </div>
               </Field>
 
               <Field label="Texto do botão (vazio = sem botão)">
