@@ -611,18 +611,23 @@ function Index() {
                       <div>
                         <div
                           className="text-[11px] font-bold tracking-[0.28em]"
-                          style={{ color: GOLD }}
+                          style={{ color: s.kickerColor ?? GOLD }}
                         >
                           {s.kicker}
                         </div>
                         <h2
                           className="mt-3 whitespace-pre-line text-[28px] leading-[1.1] font-bold"
-                          style={{ fontFamily: brand.fontFamily }}
+                          style={{ fontFamily: brand.fontFamily, color: s.titleColor ?? "#ffffff" }}
                         >
-                          {s.title}
+                          {renderRich(s.title, s.highlightColor ?? GOLD)}
                         </h2>
                         {s.subtitle && (
-                          <p className="mt-3 text-[13px] leading-snug text-white/80">{s.subtitle}</p>
+                          <p
+                            className="mt-3 text-[13px] leading-snug"
+                            style={{ color: s.subtitleColor ?? "rgba(255,255,255,0.8)" }}
+                          >
+                            {renderRich(s.subtitle, s.highlightColor ?? GOLD)}
+                          </p>
                         )}
                         {s.buttonText && s.buttonPosition === "inline" && (
                           <div className="mt-5">
