@@ -767,6 +767,27 @@ function Index() {
                 />
               </Field>
 
+              <Field label="Cores do texto · marque palavras com **palavra**">
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { k: "kickerColor", l: "Kicker", d: GOLD },
+                    { k: "titleColor", l: "Título", d: "#ffffff" },
+                    { k: "subtitleColor", l: "Subtítulo", d: "#cccccc" },
+                    { k: "highlightColor", l: "Marcador", d: GOLD },
+                  ] as const).map((c) => (
+                    <label key={c.k} className="flex flex-col items-center gap-1">
+                      <input
+                        type="color"
+                        value={(s[c.k] as string | undefined) ?? c.d}
+                        onChange={(e) => update({ [c.k]: e.target.value } as Partial<Slide>)}
+                        className="h-8 w-full cursor-pointer rounded bg-transparent"
+                      />
+                      <span className="text-[10px] text-white/60">{c.l}</span>
+                    </label>
+                  ))}
+                </div>
+              </Field>
+
               <Field label="Texto do botão (vazio = sem botão)">
                 <input
                   value={s.buttonText}
