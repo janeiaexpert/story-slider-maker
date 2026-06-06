@@ -281,16 +281,57 @@ function Index() {
     }
   };
 
+  const dataUrlToBlob = (dataUrl: string): Blob => {
+    const [meta, b64] = dataUrl.split(",");
+    const mime = /data:(.*?);base64/.exec(meta)?.[1] ?? "image/png";
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  };
+
+  const savePng = async (dataUrl: string, filename: string) => {
+    try {
+      const blob = dataUrlToBlob(dataUrl);
+      const file = new File([blob], filename, { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      // iOS / Android: share sheet lets user save to Photos / Files reliably
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        try {
+          await (navigator as Navigator & { share: (d: ShareData) => Promise<void> }).share({
+            files: [file],
+            title: filename,
+          });
+          return;
+        } catch {
+          // user cancelled → fall through to download
+        }
+      }
+      // Desktop and fallback
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      // Last resort: open the image in a new tab (mobile long-press → Save Image)
+      const w = window.open();
+      if (w) w.document.write(`<img src="${dataUrl}" style="max-width:100%"/>`);
+      else console.error(e);
+    }
+  };
+
   const exportSlide = async (idx?: number) => {
     const i = idx ?? active;
     if (i !== active) setActive(i);
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 80));
     if (!slideRef.current) return;
     const dataUrl = await toPng(slideRef.current, { pixelRatio: 2, cacheBust: true });
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `slide-${i + 1}.png`;
-    a.click();
+    await savePng(dataUrl, `slide-${i + 1}.png`);
     setSaved(i);
     setTimeout(() => setSaved(null), 1500);
   };
@@ -301,10 +342,7 @@ function Index() {
       await new Promise((r) => setTimeout(r, 200));
       if (!slideRef.current) continue;
       const dataUrl = await toPng(slideRef.current, { pixelRatio: 2, cacheBust: true });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `slide-${i + 1}.png`;
-      a.click();
+      await savePng(dataUrl, `slide-${i + 1}.png`);
       await new Promise((r) => setTimeout(r, 250));
     }
   };
