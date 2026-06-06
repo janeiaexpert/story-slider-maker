@@ -122,6 +122,9 @@ function Index() {
   const [library, setLibrary] = useState<SavedCarousel[]>([]);
   const [showLibrary, setShowLibrary] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [spaceId, setSpaceIdState] = useState<string>("");
   const slideRef = useRef<HTMLDivElement>(null);
 
   const generateFn = useServerFn(generateCarousel);
@@ -153,10 +156,19 @@ function Index() {
         }
       } catch {}
     }
-    setLibrary(loadLibrary());
+    setCompact(localStorage.getItem("carousel-compact-v1") === "1");
+    const sid = getSpaceId();
+    setSpaceIdState(sid);
+    loadLibrary().then(setLibrary);
   }, []);
 
-  const handleSaveCarousel = () => {
+  useEffect(() => {
+    localStorage.setItem("carousel-compact-v1", compact ? "1" : "0");
+  }, [compact]);
+
+  const refreshLibrary = async () => setLibrary(await loadLibrary());
+
+  const handleSaveCarousel = async () => {
     const name =
       currentName.trim() ||
       slides[0]?.title?.split("\n")[0]?.slice(0, 60) ||
@@ -170,7 +182,7 @@ function Index() {
       updatedAt: now,
       slides,
     };
-    const next = upsertCarousel(item);
+    const next = await upsertCarousel(item);
     setLibrary(next);
     setCurrentId(id);
     setCurrentName(name);
@@ -194,8 +206,8 @@ function Index() {
     setShowLibrary(false);
   };
 
-  const handleDeleteCarousel = (id: string) => {
-    const next = deleteCarousel(id);
+  const handleDeleteCarousel = async (id: string) => {
+    const next = await deleteCarousel(id);
     setLibrary(next);
     if (currentId === id) {
       setCurrentId(null);
