@@ -929,6 +929,7 @@ function Index() {
             setShowStyles(false);
           }}
         />
+      )}
       {showShare && (
         <ShareDialog
           spaceId={spaceId}
