@@ -1257,3 +1257,110 @@ function StylesDialog({
     </div>
   );
 }
+
+function ShareDialog({
+  spaceId,
+  onClose,
+  onJoin,
+}: {
+  spaceId: string;
+  onClose: () => void;
+  onJoin: (id: string) => void;
+}) {
+  const [joinId, setJoinId] = useState("");
+  const [copied, setCopied] = useState(false);
+  const url = shareUrl(spaceId);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
+
+  const shareNative = async () => {
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (nav.share) {
+      try {
+        await nav.share({ title: "Minha biblioteca de carrosséis", url });
+      } catch {}
+    } else {
+      copy();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/70 p-4 overflow-y-auto">
+      <div className="w-full max-w-md rounded-2xl bg-[#161616] p-6 ring-1 ring-white/10">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold">Sincronizar dispositivos</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
+          >
+            Fechar
+          </button>
+        </div>
+
+        <p className="mb-4 text-xs text-white/60">
+          Abra este link (ou escaneie o QR) em outro dispositivo para usar a mesma biblioteca.
+          Sem login — guarde o link em local seguro: quem tiver acesso vê seus carrosséis.
+        </p>
+
+        <div className="mb-4 flex justify-center rounded-lg bg-white p-3">
+          <img src={qrUrl(url, 220)} alt="QR do espaço" width={220} height={220} />
+        </div>
+
+        <div className="mb-3">
+          <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">Link do espaço</div>
+          <div className="flex gap-2">
+            <input
+              readOnly
+              value={url}
+              onFocus={(e) => e.currentTarget.select()}
+              className="flex-1 rounded-md border border-white/10 bg-black/40 px-3 py-2 text-xs text-white outline-none"
+            />
+            <button
+              onClick={copy}
+              className="rounded-md bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20"
+            >
+              {copied ? "Copiado!" : "Copiar"}
+            </button>
+          </div>
+        </div>
+
+        <button
+          onClick={shareNative}
+          className="mb-5 w-full rounded-md bg-white/5 py-2 text-xs font-semibold hover:bg-white/10"
+        >
+          Compartilhar…
+        </button>
+
+        <div className="mb-2 border-t border-white/10 pt-4">
+          <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
+            Entrar em outro espaço
+          </div>
+          <p className="mb-2 text-[11px] text-white/40">
+            Cole aqui o código de um espaço existente (a parte após <code>?space=</code> do link).
+          </p>
+          <div className="flex gap-2">
+            <input
+              value={joinId}
+              onChange={(e) => setJoinId(e.target.value.trim())}
+              placeholder="código do espaço"
+              className="flex-1 rounded-md border border-white/10 bg-black/40 px-3 py-2 text-xs text-white outline-none focus:border-white/30"
+            />
+            <button
+              disabled={joinId.length < 8}
+              onClick={() => onJoin(joinId)}
+              className="rounded-md bg-white px-3 py-2 text-xs font-bold text-black disabled:opacity-40"
+            >
+              Entrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
