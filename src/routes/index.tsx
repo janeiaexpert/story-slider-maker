@@ -399,8 +399,8 @@ function Index() {
       : "justify-end pb-12";
 
   return (
-    <div className="min-h-screen text-white" style={{ background: "#111" }}>
-      <div className="mx-auto max-w-7xl px-4 py-6 lg:py-10">
+    <div className={`min-h-screen text-white ${compact ? "text-[13px]" : ""}`} style={{ background: "#111" }}>
+      <div className={`mx-auto max-w-7xl px-3 ${compact ? "py-3" : "px-4 py-6 lg:py-10"}`}>
         <header className="mb-6 flex items-center justify-between gap-3">
           <div>
             <div className="text-xs tracking-[0.25em] uppercase" style={{ color: GOLD }}>
