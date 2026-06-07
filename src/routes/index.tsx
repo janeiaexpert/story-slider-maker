@@ -352,14 +352,37 @@ function Index() {
     setTimeout(() => setSaved(null), 1500);
   };
 
+  const downloadPng = (dataUrl: string, filename: string) => {
+    const blob = dataUrlToBlob(dataUrl);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   const exportAll = async () => {
-    for (let i = 0; i < slides.length; i++) {
-      setActive(i);
-      await new Promise((r) => setTimeout(r, 200));
-      if (!slideRef.current) continue;
-      const dataUrl = await toPng(slideRef.current, { pixelRatio: 2, cacheBust: true });
-      await savePng(dataUrl, `slide-${i + 1}.png`);
-      await new Promise((r) => setTimeout(r, 250));
+    setExporting(true);
+    try {
+      const prevActive = active;
+      for (let i = 0; i < slides.length; i++) {
+        setActive(i);
+        // Aguarda render: 2 frames + tick para layout/imagens estabilizarem (inclui o slide 1)
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        await new Promise((r) => setTimeout(r, 300));
+        if (!slideRef.current) continue;
+        const dataUrl = await toPng(slideRef.current, { pixelRatio: 2, cacheBust: true });
+        downloadPng(dataUrl, `slide-${i + 1}.png`);
+        await new Promise((r) => setTimeout(r, 350));
+      }
+      setActive(prevActive);
+    } finally {
+      setExporting(false);
     }
   };
 
