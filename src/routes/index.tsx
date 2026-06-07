@@ -176,8 +176,6 @@ function Index() {
       } catch {}
     }
     setCompact(localStorage.getItem("carousel-compact-v1") === "1");
-    const sid = getSpaceId();
-    setSpaceIdState(sid);
     loadLibrary().then(setLibrary);
   }, []);
 
