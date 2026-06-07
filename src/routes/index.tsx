@@ -434,14 +434,16 @@ function Index() {
             >
               {compact ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
             </button>
-            <button
-              onClick={() => setShowShare(true)}
-              title="Sincronizar dispositivos"
-              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Sync</span>
-            </button>
+            {view === "editor" && (
+              <button
+                onClick={() => setShowCaption(true)}
+                title="Gerar legenda para Instagram"
+                className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
+              >
+                <MessageSquareText className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Legenda</span>
+              </button>
+            )}
             <button
               onClick={() => {
                 refreshLibrary();
