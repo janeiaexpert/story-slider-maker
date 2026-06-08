@@ -637,7 +637,12 @@ function Index() {
                         </div>
                         <h2
                           className="mt-3 whitespace-pre-line text-[28px] leading-[1.1] font-bold"
-                          style={{ fontFamily: brand.fontFamily, color: s.titleColor ?? "#ffffff" }}
+                          style={{
+                            fontFamily: brand.fontFamily,
+                            color: s.titleColor ?? "#ffffff",
+                            letterSpacing: "-0.01em",
+                            wordSpacing: "normal",
+                          }}
                         >
                           {renderRich(s.title, s.highlightColor ?? GOLD)}
                         </h2>
