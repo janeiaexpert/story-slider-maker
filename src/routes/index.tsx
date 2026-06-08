@@ -89,9 +89,8 @@ const DIR_MAP: Record<Slide["gradient"], string> = {
 
 function gradientFor(dir: Slide["gradient"], intensity: number) {
   const a = Math.max(0, Math.min(1, intensity / 100));
-  return `linear-gradient(${DIR_MAP[dir]}, rgba(0,0,0,${(a * 0.3).toFixed(
-    2,
-  )}) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,${a.toFixed(2)}) 100%)`;
+  // Gradiente unidirecional: transparente do lado oposto, preto forte na direção escolhida.
+  return `linear-gradient(${DIR_MAP[dir]}, rgba(0,0,0,0) 0%, rgba(0,0,0,${(a * 0.45).toFixed(2)}) 55%, rgba(0,0,0,${a.toFixed(2)}) 100%)`;
 }
 
 function sanitizeTitle(t: string) {
