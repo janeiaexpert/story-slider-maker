@@ -481,13 +481,6 @@ function Index() {
               )}
             </button>
             <button
-              onClick={() => setShowStyles(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
-            >
-              <Palette className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Estilos</span>
-            </button>
-            <button
               onClick={() => setShowBrand(true)}
               className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
             >
