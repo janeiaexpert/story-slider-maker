@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Circle,
-  Palette,
   FileDown,
 } from "lucide-react";
 import { generateCarousel, generateCaption } from "@/lib/carousel.functions";
