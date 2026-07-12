@@ -1218,11 +1218,11 @@ function Index() {
           }}
         />
       )}
-      {showCaption && (
-        <CaptionDialog
-          slides={slides}
-          brand={brand}
-          onClose={() => setShowCaption(false)}
+      {showElements && (
+        <ElementsDialog
+          slide={s}
+          onChange={(patch) => update(patch)}
+          onClose={() => setShowElements(false)}
         />
       )}
     </div>
