@@ -1218,10 +1218,17 @@ function Index() {
           }}
         />
       )}
+      {showCaption && (
+        <CaptionDialog
+          slides={slides}
+          brand={brand}
+          onClose={() => setShowCaption(false)}
+        />
+      )}
       {showElements && (
         <ElementsDialog
           slide={s}
-          onChange={(patch) => update(patch)}
+          onChange={(patch: Partial<Slide>) => update(patch)}
           onClose={() => setShowElements(false)}
         />
       )}
