@@ -187,6 +187,7 @@ function Index() {
   const [savedFlash, setSavedFlash] = useState(false);
   const [compact, setCompact] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
+  const [showElements, setShowElements] = useState(false);
   const slideRef = useRef<HTMLDivElement>(null);
 
   const generateFn = useServerFn(generateCarousel);
