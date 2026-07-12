@@ -642,96 +642,191 @@ function Index() {
                     className="absolute inset-0 flex flex-col"
                     style={{ background: BG, color: "white" }}
                   >
-                    {s.image && (
-                      <img
-                        src={s.image}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover"
-                        style={{ objectPosition: `center ${s.imagePos === "top" ? "0%" : s.imagePos === "bottom" ? "100%" : "50%"}` }}
-                      />
-                    )}
-                    {s.image && (
-                      <div
-                        className="absolute inset-0"
-                        style={{ background: gradientFor(s.gradient, s.gradientIntensity) }}
-                      />
-                    )}
-                    <div className={`relative z-10 flex h-full w-full flex-col px-7 ${s.buttonText && s.buttonPosition === "bottom" ? "pb-44" : "pb-20"} ${alignClass}`}>
-                      <div>
-                        <div
-                          className="text-[11px] font-bold tracking-[0.28em]"
-                          style={{ color: s.kickerColor ?? GOLD }}
-                        >
-                          {s.kicker}
-                        </div>
-                        <h2
-                          className="mt-3 whitespace-pre-line text-[28px] leading-[1.1] font-bold"
-                          style={{
-                            fontFamily: brand.fontFamily,
-                            color: s.titleColor ?? "#ffffff",
-                            letterSpacing: "-0.01em",
-                            wordSpacing: "normal",
-                          }}
-                        >
-                          {renderRich(s.title, s.highlightColor ?? GOLD)}
-                        </h2>
-                        {s.subtitle && (
-                          <p
-                            className="mt-3 text-[13px] leading-snug"
-                            style={{ color: s.subtitleColor ?? "rgba(255,255,255,0.8)" }}
-                          >
-                            {renderRich(s.subtitle, s.highlightColor ?? GOLD)}
-                          </p>
-                        )}
-                        {s.buttonText && s.buttonPosition === "inline" && (
-                          <div className="mt-5">
+                    {(() => {
+                      const layout = s.layout ?? "overlay";
+                      const hasImg = !!s.image;
+                      const split = hasImg && layout !== "overlay";
+                      const imageSide = layout === "image-left" ? "left" : "right";
+                      const objPos = `center ${s.imagePos === "top" ? "0%" : s.imagePos === "bottom" ? "100%" : "50%"}`;
+                      const titleScale = s.titleScale ?? 1;
+                      const subScale = s.subtitleScale ?? 1;
+                      const bodyFont = brand.fontBody ?? "Inter, system-ui, sans-serif";
+                      return (
+                        <>
+                          {/* Camada de imagem */}
+                          {hasImg && !split && (
+                            <img
+                              src={s.image!}
+                              alt=""
+                              className="absolute inset-0 h-full w-full object-cover"
+                              style={{ objectPosition: objPos }}
+                            />
+                          )}
+                          {hasImg && !split && (
                             <div
-                              className="w-full rounded-md py-3 text-center text-[13px] font-bold"
-                              style={{ background: GOLD, color: "#111" }}
+                              className="absolute inset-0"
+                              style={{ background: gradientFor(s.gradient, s.gradientIntensity) }}
+                            />
+                          )}
+                          {hasImg && split && (
+                            <div
+                              className={`absolute inset-y-0 w-1/2 ${imageSide === "left" ? "left-0" : "right-0"}`}
                             >
-                              {s.buttonText}
+                              <img
+                                src={s.image!}
+                                alt=""
+                                className="h-full w-full object-cover"
+                                style={{ objectPosition: objPos }}
+                              />
+                              {/* fade sutil entre imagem e texto */}
+                              <div
+                                className="absolute inset-y-0 w-8"
+                                style={{
+                                  [imageSide === "left" ? "right" : "left"]: 0,
+                                  background:
+                                    imageSide === "left"
+                                      ? `linear-gradient(to right, transparent, ${BG})`
+                                      : `linear-gradient(to left, transparent, ${BG})`,
+                                } as React.CSSProperties}
+                              />
                             </div>
-                            {s.buttonCaption && (
-                              <div className="mt-2 text-center text-[11px] text-white/60">
-                                {s.buttonCaption}
+                          )}
+
+                          {/* Elementos decorativos */}
+                          {(s.elements ?? []).map((el) => {
+                            const def = findElement(el.svgId);
+                            if (!def) return null;
+                            return (
+                              <div
+                                key={el.id}
+                                className="pointer-events-none absolute"
+                                style={{
+                                  left: `${el.x}%`,
+                                  top: `${el.y}%`,
+                                  width: `${18 * el.scale}%`,
+                                  aspectRatio: "1 / 1",
+                                  transform: `translate(-50%, -50%) rotate(${el.rotation}deg)`,
+                                  opacity: el.opacity,
+                                  color: el.color,
+                                }}
+                                dangerouslySetInnerHTML={{ __html: def.svg }}
+                              />
+                            );
+                          })}
+
+                          {/* Container do texto */}
+                          <div
+                            className={`relative z-10 flex h-full flex-col ${
+                              split
+                                ? `w-1/2 px-6 ${imageSide === "left" ? "ml-auto" : "mr-auto"}`
+                                : "w-full px-7"
+                            } ${s.buttonText && s.buttonPosition === "bottom" ? "pb-44" : "pb-20"} ${alignClass}`}
+                          >
+                            <div>
+                              <div
+                                className="font-bold tracking-[0.28em]"
+                                style={{
+                                  color: s.kickerColor ?? GOLD,
+                                  fontSize: 11 * titleScale,
+                                  fontFamily: bodyFont,
+                                }}
+                              >
+                                {s.kicker}
                               </div>
-                            )}
+                              <h2
+                                className="mt-3 whitespace-pre-line font-bold"
+                                style={{
+                                  fontFamily: brand.fontFamily,
+                                  color: s.titleColor ?? "#ffffff",
+                                  letterSpacing: "-0.01em",
+                                  wordSpacing: "normal",
+                                  fontSize: 28 * titleScale,
+                                  lineHeight: 1.1,
+                                }}
+                              >
+                                {renderRich(s.title, s.highlightColor ?? GOLD)}
+                              </h2>
+                              {s.subtitle && (
+                                <p
+                                  className="mt-3 leading-snug"
+                                  style={{
+                                    color: s.subtitleColor ?? "rgba(255,255,255,0.8)",
+                                    fontSize: 13 * subScale,
+                                    fontFamily: bodyFont,
+                                  }}
+                                >
+                                  {renderRich(s.subtitle, s.highlightColor ?? GOLD)}
+                                </p>
+                              )}
+                              {s.buttonText && s.buttonPosition === "inline" && (
+                                <div className="mt-5">
+                                  <div
+                                    className="w-full rounded-md py-3 text-center text-[13px] font-bold"
+                                    style={{ background: GOLD, color: "#111", fontFamily: bodyFont }}
+                                  >
+                                    {s.buttonText}
+                                  </div>
+                                  {s.buttonCaption && (
+                                    <div
+                                      className="mt-2 text-center text-[11px] text-white/60"
+                                      style={{ fontFamily: bodyFont }}
+                                    >
+                                      {s.buttonCaption}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                    {s.buttonText && s.buttonPosition === "bottom" && (
-                      <div className="absolute right-0 bottom-16 left-0 z-10 px-7">
-                        <div
-                          className="w-full rounded-md py-3 text-center text-[13px] font-bold"
-                          style={{ background: GOLD, color: "#111" }}
-                        >
-                          {s.buttonText}
-                        </div>
-                        {s.buttonCaption && (
-                          <div className="mt-2 text-center text-[11px] text-white/60">
-                            {s.buttonCaption}
+
+                          {s.buttonText && s.buttonPosition === "bottom" && (
+                            <div
+                              className={`absolute bottom-16 z-10 ${
+                                split
+                                  ? `w-1/2 px-6 ${imageSide === "left" ? "right-0" : "left-0"}`
+                                  : "right-0 left-0 px-7"
+                              }`}
+                            >
+                              <div
+                                className="w-full rounded-md py-3 text-center text-[13px] font-bold"
+                                style={{ background: GOLD, color: "#111", fontFamily: bodyFont }}
+                              >
+                                {s.buttonText}
+                              </div>
+                              {s.buttonCaption && (
+                                <div
+                                  className="mt-2 text-center text-[11px] text-white/60"
+                                  style={{ fontFamily: bodyFont }}
+                                >
+                                  {s.buttonCaption}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Footer fixo */}
+                          <div className="absolute right-0 bottom-0 left-0 z-10 px-7 pb-5">
+                            <div
+                              className="flex items-center justify-between text-[11px] text-white/70"
+                              style={{ fontFamily: bodyFont }}
+                            >
+                              <span>
+                                {s.handle} · {s.author}
+                              </span>
+                              <span>{active + 1}/8</span>
+                            </div>
+                            <div
+                              className="mt-2 h-[3px] w-full rounded-full"
+                              style={{
+                                background: `linear-gradient(to right, ${GOLD} ${
+                                  ((active + 1) / 8) * 100
+                                }%, rgba(255,255,255,0.15) ${((active + 1) / 8) * 100}%)`,
+                              }}
+                            />
                           </div>
-                        )}
-                      </div>
-                    )}
-                    {/* Footer fixo na parte inferior */}
-                    <div className="absolute right-0 bottom-0 left-0 z-10 px-7 pb-5">
-                      <div className="flex items-center justify-between text-[11px] text-white/70">
-                        <span>
-                          {s.handle} · {s.author}
-                        </span>
-                        <span>{active + 1}/8</span>
-                      </div>
-                      <div
-                        className="mt-2 h-[3px] w-full rounded-full"
-                        style={{
-                          background: `linear-gradient(to right, ${GOLD} ${
-                            ((active + 1) / 8) * 100
-                          }%, rgba(255,255,255,0.15) ${((active + 1) / 8) * 100}%)`,
-                        }}
-                      />
-                    </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
