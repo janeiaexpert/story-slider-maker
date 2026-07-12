@@ -18,6 +18,10 @@ import {
   Circle,
   Palette,
   FileDown,
+  Type,
+  Shapes,
+  Layout,
+  X,
 } from "lucide-react";
 import { generateCarousel, generateCaption } from "@/lib/carousel.functions";
 import {
