@@ -55,6 +55,17 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+export type SlideElement = {
+  id: string; // instance id
+  svgId: string; // ref to ELEMENTS
+  x: number; // 0-100 (% do card)
+  y: number; // 0-100
+  scale: number; // 0.2 - 2
+  rotation: number; // -180..180
+  opacity: number; // 0..1
+  color: string;
+};
+
 type Slide = {
   kicker: string;
   title: string;
@@ -73,7 +84,37 @@ type Slide = {
   subtitleColor?: string;
   kickerColor?: string;
   highlightColor?: string;
+  titleScale?: number; // 0.7 - 1.6
+  subtitleScale?: number;
+  layout?: "overlay" | "image-left" | "image-right";
+  elements?: SlideElement[];
 };
+
+function migrateSlide(d: Partial<Slide>): Slide {
+  return {
+    kicker: d.kicker ?? "",
+    title: d.title ?? "",
+    subtitle: d.subtitle ?? "",
+    buttonText: d.buttonText ?? "",
+    buttonCaption: d.buttonCaption ?? "",
+    handle: d.handle ?? "",
+    author: d.author ?? "",
+    image: d.image ?? null,
+    align: d.align ?? "bottom",
+    gradient: d.gradient ?? "bottom",
+    gradientIntensity: d.gradientIntensity ?? 70,
+    buttonPosition: d.buttonPosition ?? "inline",
+    imagePos: d.imagePos ?? "center",
+    titleColor: d.titleColor,
+    subtitleColor: d.subtitleColor,
+    kickerColor: d.kickerColor,
+    highlightColor: d.highlightColor,
+    titleScale: d.titleScale ?? 1,
+    subtitleScale: d.subtitleScale ?? 1,
+    layout: d.layout ?? "overlay",
+    elements: d.elements ?? [],
+  };
+}
 
 // Renderiza texto com **palavra** destacada em cor de marcador.
 function renderRich(text: string, highlight: string): React.ReactNode {
