@@ -243,13 +243,7 @@ function Index() {
   };
 
   const handleLoadCarousel = (item: SavedCarousel) => {
-    const data = (item.slides as Slide[]).map((d) => ({
-      ...d,
-      gradient: d.gradient ?? "bottom",
-      gradientIntensity: d.gradientIntensity ?? 70,
-      buttonPosition: d.buttonPosition ?? "inline",
-      imagePos: d.imagePos ?? "center",
-    }));
+    const data = (item.slides as Partial<Slide>[]).map((d) => migrateSlide(d));
     setSlides(data);
     setCurrentId(item.id);
     setCurrentName(item.name);
