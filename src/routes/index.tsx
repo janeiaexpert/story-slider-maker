@@ -886,11 +886,19 @@ function Index() {
 
             {/* Editor */}
             <aside className="rounded-xl bg-white/[0.03] p-5 ring-1 ring-white/10">
-              <div className="mb-4">
+              <div className="mb-4 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-bold tracking-wider uppercase text-white/70">
                   Editar slide {active + 1}
                 </h2>
+                <button
+                  onClick={() => setEditorOpen((o) => !o)}
+                  className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 lg:hidden"
+                  aria-label={editorOpen ? "Encolher edição" : "Expandir edição"}
+                >
+                  {editorOpen ? <><Minimize2 className="h-3.5 w-3.5" /> Encolher</> : <><Maximize2 className="h-3.5 w-3.5" /> Expandir</>}
+                </button>
               </div>
+              <div className={editorOpen ? "" : "hidden lg:block"}>
 
               <Field label="Kicker">
                 <input
