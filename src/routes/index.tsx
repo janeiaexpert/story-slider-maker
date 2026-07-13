@@ -1256,7 +1256,7 @@ function BrandDialog({
           A IA usa essas informações para escrever no seu tom e aplicar seu visual.
         </p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Field label="Nicho">
             <input
               value={b.niche}
