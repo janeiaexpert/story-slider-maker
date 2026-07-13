@@ -1303,7 +1303,7 @@ function BrandDialog({
               <option value="viralizacao">Viralização</option>
             </select>
           </Field>
-          <div className="col-span-2">
+          <div className="col-span-2 sm:col-span-3">
             <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
               Paleta sugerida
             </div>
@@ -1344,7 +1344,7 @@ function BrandDialog({
               className="h-10 w-full rounded-md border border-white/10 bg-black/40"
             />
           </Field>
-          <div className="col-span-2">
+          <div className="col-span-2 sm:col-span-3">
             <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
               Tipografia
             </div>
