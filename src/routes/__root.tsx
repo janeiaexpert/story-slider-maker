@@ -82,8 +82,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Fábrica de Carrosséis" },
       { name: "twitter:description", content: "Carrossel Editável" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c481c07c-67c9-49d6-91d8-e6c7c620baef/id-preview-9e47b6ee--74888500-0b0c-4ccc-871e-98f05986c3fb.lovable.app-1780449909937.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c481c07c-67c9-49d6-91d8-e6c7c620baef/id-preview-9e47b6ee--74888500-0b0c-4ccc-871e-98f05986c3fb.lovable.app-1780449909937.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/BXnShJrRatfgP2ADLG8Gb0ckd1y1/social-images/social-1783983694557-Log_Carrossel.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/BXnShJrRatfgP2ADLG8Gb0ckd1y1/social-images/social-1783983694557-Log_Carrossel.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
