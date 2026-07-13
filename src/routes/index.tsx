@@ -1183,7 +1183,8 @@ function Index() {
                 >
                   <Shapes className="h-3.5 w-3.5" /> Abrir biblioteca
                 </button>
-              </Field>
+                </Field>
+              </div>
             </aside>
           </div>
         )}
