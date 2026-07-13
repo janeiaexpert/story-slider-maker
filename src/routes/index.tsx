@@ -186,6 +186,7 @@ function Index() {
   const [showLibrary, setShowLibrary] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [compact, setCompact] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(true);
   const [showCaption, setShowCaption] = useState(false);
   const [showElements, setShowElements] = useState(false);
   const slideRef = useRef<HTMLDivElement>(null);
@@ -885,11 +886,19 @@ function Index() {
 
             {/* Editor */}
             <aside className="rounded-xl bg-white/[0.03] p-5 ring-1 ring-white/10">
-              <div className="mb-4">
+              <div className="mb-4 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-bold tracking-wider uppercase text-white/70">
                   Editar slide {active + 1}
                 </h2>
+                <button
+                  onClick={() => setEditorOpen((o) => !o)}
+                  className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 lg:hidden"
+                  aria-label={editorOpen ? "Encolher edição" : "Expandir edição"}
+                >
+                  {editorOpen ? <><Minimize2 className="h-3.5 w-3.5" /> Encolher</> : <><Maximize2 className="h-3.5 w-3.5" /> Expandir</>}
+                </button>
               </div>
+              <div className={editorOpen ? "" : "hidden lg:block"}>
 
               <Field label="Kicker">
                 <input
@@ -1174,7 +1183,8 @@ function Index() {
                 >
                   <Shapes className="h-3.5 w-3.5" /> Abrir biblioteca
                 </button>
-              </Field>
+                </Field>
+              </div>
             </aside>
           </div>
         )}
@@ -1249,14 +1259,14 @@ function BrandDialog({
   const set = <K extends keyof Brand>(k: K, v: Brand[K]) => setB((s) => ({ ...s, [k]: v }));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/70 p-4 overflow-y-auto">
-      <div className="w-full max-w-lg rounded-2xl bg-[#161616] p-6 ring-1 ring-white/10">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 overflow-y-auto sm:p-8">
+      <div className="w-full max-w-3xl rounded-2xl bg-[#161616] p-6 ring-1 ring-white/10 sm:p-8">
         <h2 className="mb-1 text-lg font-bold">Sua marca</h2>
         <p className="mb-5 text-xs text-white/50">
           A IA usa essas informações para escrever no seu tom e aplicar seu visual.
         </p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Field label="Nicho">
             <input
               value={b.niche}
@@ -1303,7 +1313,7 @@ function BrandDialog({
               <option value="viralizacao">Viralização</option>
             </select>
           </Field>
-          <div className="col-span-2">
+          <div className="col-span-2 sm:col-span-3">
             <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
               Paleta sugerida
             </div>
@@ -1344,7 +1354,7 @@ function BrandDialog({
               className="h-10 w-full rounded-md border border-white/10 bg-black/40"
             />
           </Field>
-          <div className="col-span-2">
+          <div className="col-span-2 sm:col-span-3">
             <div className="mb-1 text-[11px] tracking-wider uppercase text-white/50">
               Tipografia
             </div>
