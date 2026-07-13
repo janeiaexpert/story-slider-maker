@@ -186,6 +186,7 @@ function Index() {
   const [showLibrary, setShowLibrary] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [compact, setCompact] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(true);
   const [showCaption, setShowCaption] = useState(false);
   const [showElements, setShowElements] = useState(false);
   const slideRef = useRef<HTMLDivElement>(null);
