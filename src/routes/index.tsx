@@ -631,7 +631,7 @@ function Index() {
         )}
 
         {view === "editor" && (
-          <div className="grid gap-4 md:grid-cols-[88px_1fr] lg:grid-cols-[96px_1fr_360px]">
+          <div className="grid gap-4 md:grid-cols-[72px_1fr_280px] lg:grid-cols-[96px_1fr_360px]">
             {/* Rail de slides (PowerPoint) */}
             <div className="hidden md:block md:sticky md:top-4 md:self-start md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
               <div className="flex flex-col gap-2 rounded-xl bg-white/[0.03] p-2 ring-1 ring-white/10">
@@ -911,7 +911,7 @@ function Index() {
 
             {/* Editor */}
             <aside
-              className={`bg-[#161616] ring-1 ring-white/10 lg:rounded-xl lg:bg-white/[0.03] lg:p-5 lg:static lg:max-h-none lg:overflow-visible lg:z-auto fixed left-0 right-0 bottom-0 z-40 rounded-t-2xl p-4 shadow-2xl transition-[max-height] duration-300 ${
+              className={`bg-[#161616] ring-1 ring-white/10 md:rounded-xl md:bg-white/[0.03] md:p-5 md:static md:max-h-none md:overflow-visible md:z-auto fixed left-0 right-0 bottom-0 z-40 rounded-t-2xl p-4 shadow-2xl transition-[max-height] duration-300 ${
                 editorOpen ? "max-h-[70vh] overflow-y-auto" : "max-h-[52px] overflow-hidden"
               }`}
             >
@@ -921,7 +921,7 @@ function Index() {
                 </h2>
                 <button
                   onClick={() => setEditorOpen((o) => !o)}
-                  className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 lg:hidden"
+                  className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 md:hidden"
                   aria-label={editorOpen ? "Encolher edição" : "Expandir edição"}
                 >
                   {editorOpen ? <><Minimize2 className="h-3.5 w-3.5" /> Encolher</> : <><Maximize2 className="h-3.5 w-3.5" /> Expandir</>}
