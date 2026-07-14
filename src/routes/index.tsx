@@ -921,7 +921,7 @@ function Index() {
                 </h2>
                 <button
                   onClick={() => setEditorOpen((o) => !o)}
-                  className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 lg:hidden"
+                  className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 md:hidden"
                   aria-label={editorOpen ? "Encolher edição" : "Expandir edição"}
                 >
                   {editorOpen ? <><Minimize2 className="h-3.5 w-3.5" /> Encolher</> : <><Maximize2 className="h-3.5 w-3.5" /> Expandir</>}
