@@ -631,7 +631,7 @@ function Index() {
         )}
 
         {view === "editor" && (
-          <div className="grid gap-4 md:grid-cols-[88px_1fr] lg:grid-cols-[96px_1fr_360px]">
+          <div className="grid gap-4 md:grid-cols-[72px_1fr_280px] lg:grid-cols-[96px_1fr_360px]">
             {/* Rail de slides (PowerPoint) */}
             <div className="hidden md:block md:sticky md:top-4 md:self-start md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
               <div className="flex flex-col gap-2 rounded-xl bg-white/[0.03] p-2 ring-1 ring-white/10">
