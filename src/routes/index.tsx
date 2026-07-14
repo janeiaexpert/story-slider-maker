@@ -665,7 +665,7 @@ function Index() {
               <div
                 className={`w-full max-w-[420px] ${
                   editorOpen
-                    ? "max-md:fixed max-md:top-1 max-md:left-1/2 max-md:z-30 max-md:w-[220px] max-md:-translate-x-1/2"
+                    ? "max-md:fixed max-md:top-1 max-md:left-1/2 max-md:z-30 max-md:w-[200px] max-md:-translate-x-1/2"
                     : ""
                 }`}
               >
@@ -675,11 +675,7 @@ function Index() {
                 >
                   <div
                     ref={slideRef}
-                    className={`absolute inset-0 flex flex-col ${
-                      editorOpen
-                        ? "max-md:!right-auto max-md:!bottom-auto max-md:h-[181.82%] max-md:w-[181.82%] max-md:origin-top-left max-md:scale-[0.55]"
-                        : ""
-                    }`}
+                    className={`absolute inset-0 flex flex-col ${editorOpen ? "card-preview-compact-mobile" : ""}`}
                     style={{ background: BG, color: "white" }}
                   >
                     {(() => {
