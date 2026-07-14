@@ -186,7 +186,7 @@ function Index() {
   const [showLibrary, setShowLibrary] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [compact, setCompact] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(true);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
   const [showElements, setShowElements] = useState(false);
   const slideRef = useRef<HTMLDivElement>(null);
@@ -631,9 +631,33 @@ function Index() {
         )}
 
         {view === "editor" && (
-          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+          <div className="grid gap-4 md:grid-cols-[88px_1fr] lg:grid-cols-[96px_1fr_360px]">
+            {/* Rail de slides (PowerPoint) */}
+            <div className="hidden md:block md:sticky md:top-4 md:self-start md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
+              <div className="flex flex-col gap-2 rounded-xl bg-white/[0.03] p-2 ring-1 ring-white/10">
+                {slides.map((sl, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActive(i)}
+                    className={`relative flex items-center gap-2 rounded-md border-2 p-1 text-left transition ${
+                      i === active ? "border-[color:var(--g)]" : "border-white/10 hover:border-white/30"
+                    }`}
+                    style={{ ["--g" as any]: GOLD } as React.CSSProperties}
+                  >
+                    <span className="text-[10px] font-bold text-white/50 w-4 text-center">{i + 1}</span>
+                    <span
+                      className="flex-1 aspect-[1080/1350] rounded-sm overflow-hidden text-[7px] leading-tight px-1 py-1"
+                      style={{ background: BG, color: "white" }}
+                    >
+                      <span className="line-clamp-3 opacity-80">{sl.title || sl.kicker}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Preview */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center md:sticky md:top-4 md:self-start pb-24 md:pb-0">
               <div className="w-full max-w-[420px]">
                 <div
                   className="relative w-full overflow-hidden rounded-2xl shadow-2xl"
@@ -833,7 +857,8 @@ function Index() {
                 </div>
               </div>
 
-              <div className="mt-6 grid w-full grid-cols-4 gap-2 sm:grid-cols-8">
+              <div className="mt-6 grid w-full grid-cols-8 gap-2 md:hidden">
+
                 {slides.map((_, i) => (
                   <button
                     key={i}
@@ -885,7 +910,11 @@ function Index() {
             </div>
 
             {/* Editor */}
-            <aside className="rounded-xl bg-white/[0.03] p-5 ring-1 ring-white/10">
+            <aside
+              className={`bg-[#161616] ring-1 ring-white/10 lg:rounded-xl lg:bg-white/[0.03] lg:p-5 lg:static lg:max-h-none lg:overflow-visible lg:z-auto fixed left-0 right-0 bottom-0 z-40 rounded-t-2xl p-4 shadow-2xl transition-[max-height] duration-300 ${
+                editorOpen ? "max-h-[70vh] overflow-y-auto" : "max-h-[52px] overflow-hidden"
+              }`}
+            >
               <div className="mb-4 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-bold tracking-wider uppercase text-white/70">
                   Editar slide {active + 1}
