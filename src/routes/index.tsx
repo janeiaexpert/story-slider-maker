@@ -911,7 +911,7 @@ function Index() {
 
             {/* Editor */}
             <aside
-              className={`bg-[#161616] ring-1 ring-white/10 lg:rounded-xl lg:bg-white/[0.03] lg:p-5 lg:static lg:max-h-none lg:overflow-visible lg:z-auto fixed left-0 right-0 bottom-0 z-40 rounded-t-2xl p-4 shadow-2xl transition-[max-height] duration-300 ${
+              className={`bg-[#161616] ring-1 ring-white/10 md:rounded-xl md:bg-white/[0.03] md:p-5 md:static md:max-h-none md:overflow-visible md:z-auto fixed left-0 right-0 bottom-0 z-40 rounded-t-2xl p-4 shadow-2xl transition-[max-height] duration-300 ${
                 editorOpen ? "max-h-[70vh] overflow-y-auto" : "max-h-[52px] overflow-hidden"
               }`}
             >
