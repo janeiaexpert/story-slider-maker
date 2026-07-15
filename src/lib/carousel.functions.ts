@@ -6,9 +6,9 @@ import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 const SlideSchema = z.object({
   kicker: z.string(),
   title: z.string(),
-  subtitle: z.string().default(""),
-  buttonText: z.string().default(""),
-  buttonCaption: z.string().default(""),
+  subtitle: z.string(),
+  buttonText: z.string(),
+  buttonCaption: z.string(),
   align: z.enum(["top", "center", "bottom"]),
 });
 
