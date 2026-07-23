@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toPng } from "html-to-image";
@@ -19,7 +19,6 @@ import {
   Palette,
   FileDown,
   Type,
-  Shapes,
   Layout,
   X,
 } from "lucide-react";
@@ -31,6 +30,8 @@ import {
   type DesignStyle,
   FONT_PAIRS,
   type FontPair,
+  TYPOGRAPHY_PRESETS,
+  COLOR_THEMES,
   defaultBrand,
   loadBrand,
   saveBrand,
@@ -41,30 +42,16 @@ import {
   loadLibrary,
   newId,
   upsertCarousel,
+  saveBrandToCloud,
+  loadBrandFromCloud,
 } from "@/lib/carousel-library";
-import { Save, FolderOpen, Trash2, Minimize2, Maximize2, MessageSquareText } from "lucide-react";
-import {
-  ELEMENTS,
-  ELEMENT_CATEGORIES,
-  type ElementDef,
-  elementsByCategory,
-  findElement,
-} from "@/lib/elements-library";
+import { supabase } from "@/integrations/supabase/client";
+import { Save, FolderOpen, Trash2, Minimize2, Maximize2, MessageSquareText, Share2 } from "lucide-react";
+import { getSpaceId, shareUrl } from "@/lib/space-id";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
-
-export type SlideElement = {
-  id: string; // instance id
-  svgId: string; // ref to ELEMENTS
-  x: number; // 0-100 (% do card)
-  y: number; // 0-100
-  scale: number; // 0.2 - 2
-  rotation: number; // -180..180
-  opacity: number; // 0..1
-  color: string;
-};
 
 type Slide = {
   kicker: string;
@@ -87,7 +74,6 @@ type Slide = {
   titleScale?: number; // 0.7 - 1.6
   subtitleScale?: number;
   layout?: "overlay" | "image-left" | "image-right";
-  elements?: SlideElement[];
 };
 
 function migrateSlide(d: Partial<Slide>): Slide {
@@ -170,6 +156,7 @@ function Index() {
   const [brand, setBrand] = useState<Brand>(defaultBrand);
   const [brandReady, setBrandReady] = useState(false);
   const [showBrand, setShowBrand] = useState(false);
+  const [alignFlash, setAlignFlash] = useState(false);
   const [showStyles, setShowStyles] = useState(false);
   const [view, setView] = useState<"insight" | "editor">("insight");
   const [insight, setInsight] = useState("");
@@ -185,10 +172,16 @@ function Index() {
   const [library, setLibrary] = useState<SavedCarousel[]>([]);
   const [showLibrary, setShowLibrary] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [shareFlash, setShareFlash] = useState(false);
   const [compact, setCompact] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
-  const [showElements, setShowElements] = useState(false);
+
+  const [typography, setTypography] = useState("Médio");
+  const [colorTheme, setColorTheme] = useState("Bege");
+  const [textSizeScale, setTextSizeScale] = useState(100);
+
+  const [exportImages, setExportImages] = useState<string[] | null>(null);
   const slideRef = useRef<HTMLDivElement>(null);
 
   const generateFn = useServerFn(generateCarousel);
@@ -199,9 +192,17 @@ function Index() {
     if (b) {
       setBrand(b);
       setBrandReady(true);
-    } else {
-      setShowBrand(true);
     }
+    loadBrandFromCloud().then((cloud) => {
+      if (cloud) {
+        const merged = { ...(b ?? defaultBrand), ...(cloud as Partial<Brand>) };
+        setBrand(merged);
+        saveBrand(merged);
+        setBrandReady(true);
+      } else if (!b) {
+        setShowBrand(true);
+      }
+    });
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       try {
@@ -219,6 +220,41 @@ function Index() {
   useEffect(() => {
     localStorage.setItem("carousel-compact-v1", compact ? "1" : "0");
   }, [compact]);
+
+  useEffect(() => {
+    if (brandReady) {
+      saveBrand(brand);
+      saveBrandToCloud(brand);
+    }
+  }, [brand, brandReady]);
+
+  useEffect(() => {
+    const space = getSpaceId();
+    const channel = supabase
+      .channel(`space:${space}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "carousels", filter: `space_id=eq.${space}` },
+        async (payload) => {
+          if (payload.eventType === "DELETE") {
+            setLibrary(await loadLibrary());
+            return;
+          }
+          const row = payload.new as { id: string; slides: unknown[] };
+          if (row.id === "__brand__") {
+            const cloud = Array.isArray(row.slides) ? row.slides[0] : null;
+            if (cloud) {
+              setBrand((prev) => ({ ...prev, ...(cloud as Partial<Brand>) }));
+              saveBrand({ ...loadBrand()!, ...(cloud as Partial<Brand>) });
+            }
+          } else {
+            setLibrary(await loadLibrary());
+          }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const refreshLibrary = async () => setLibrary(await loadLibrary());
 
@@ -273,7 +309,23 @@ function Index() {
 
   const onImage = (file: File) => {
     const reader = new FileReader();
-    reader.onload = () => update({ image: reader.result as string });
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const img = new Image();
+      img.onload = () => {
+        const max = 1080;
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+        if (w > max) { h = (h / w) * max; w = max; }
+        const c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        c.getContext("2d")!.drawImage(img, 0, 0, w, h);
+        update({ image: c.toDataURL("image/jpeg", 0.85) });
+      };
+      img.onerror = () => update({ image: dataUrl });
+      img.src = dataUrl;
+    };
     reader.readAsDataURL(file);
   };
 
@@ -317,11 +369,11 @@ function Index() {
       setCurrentName("");
       setView("editor");
     } catch (e: any) {
-      console.error(e);
+      console.error("CAROUSEL ERROR:", e);
       const msg = String(e?.message || e);
       if (msg.includes("429")) setError("Limite de uso atingido. Tente novamente em alguns segundos.");
       else if (msg.includes("402")) setError("Créditos esgotados. Adicione créditos no workspace.");
-      else setError("Falha ao gerar carrossel. Tente novamente.");
+      else setError(`Falha ao gerar carrossel: ${msg.slice(0, 200)}`);
     } finally {
       setLoading(false);
     }
@@ -336,81 +388,90 @@ function Index() {
     return new Blob([arr], { type: mime });
   };
 
-  const savePng = async (dataUrl: string, filename: string) => {
+  const waitForRender = async (el: HTMLElement) => {
+    await document.fonts.ready;
+    const imgs = el.querySelectorAll("img");
+    await Promise.all(
+      [...imgs].map((img) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+          setTimeout(resolve, 5000);
+        });
+      }),
+    );
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    await new Promise((r) => setTimeout(r, 200));
+  };
+
+  const capturePng = async (el: HTMLElement): Promise<string> => {
+    await waitForRender(el);
     try {
-      const blob = dataUrlToBlob(dataUrl);
-      const file = new File([blob], filename, { type: "image/png" });
-      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
-      // iOS / Android: share sheet lets user save to Photos / Files reliably
-      if (nav.canShare && nav.canShare({ files: [file] })) {
-        try {
-          await (navigator as Navigator & { share: (d: ShareData) => Promise<void> }).share({
-            files: [file],
-            title: filename,
-          });
-          return;
-        } catch {
-          // user cancelled → fall through to download
-        }
-      }
-      // Desktop and fallback
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return await toPng(el, {
+        pixelRatio: 2,
+        useCORS: true,
+        cacheBust: true,
+      });
     } catch (e) {
-      // Last resort: open the image in a new tab (mobile long-press → Save Image)
-      const w = window.open();
-      if (w) w.document.write(`<img src="${dataUrl}" style="max-width:100%"/>`);
-      else console.error(e);
+      console.warn("toPng failed", e);
     }
+    const { toCanvas } = await import("html-to-image");
+    const canvas = await toCanvas(el, {
+      pixelRatio: 2,
+      useCORS: true,
+      cacheBust: true,
+    });
+    return canvas.toDataURL("image/png");
+  };
+
+  const baixarPng = async (dataUrl: string, filename: string) => {
+    const blob = await (await fetch(dataUrl)).blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
   const exportSlide = async (idx?: number) => {
     const i = idx ?? active;
     if (i !== active) setActive(i);
-    await new Promise((r) => setTimeout(r, 80));
+    await new Promise((r) => setTimeout(r, 300));
     if (!slideRef.current) return;
-    const dataUrl = await toPng(slideRef.current, { pixelRatio: 2, cacheBust: true });
-    await savePng(dataUrl, `slide-${i + 1}.png`);
-    setSaved(i);
-    setTimeout(() => setSaved(null), 1500);
-  };
-
-  const downloadPng = (dataUrl: string, filename: string) => {
-    const blob = dataUrlToBlob(dataUrl);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    try {
+      const dataUrl = await capturePng(slideRef.current);
+      if (!dataUrl || dataUrl === "data:,") throw new Error("capture empty");
+      setExportImages([dataUrl]);
+      setSaved(i);
+      setTimeout(() => setSaved(null), 1500);
+    } catch (e) {
+      console.error("exportSlide", e);
+      setError("Erro ao exportar. Tente novamente.");
+    }
   };
 
   const exportAll = async () => {
     setExporting(true);
     try {
       const prevActive = active;
+      const urls: string[] = [];
       for (let i = 0; i < slides.length; i++) {
         setActive(i);
-        // Aguarda render: 2 frames + tick para layout/imagens estabilizarem (inclui o slide 1)
-        await new Promise((r) => requestAnimationFrame(() => r(null)));
-        await new Promise((r) => requestAnimationFrame(() => r(null)));
         await new Promise((r) => setTimeout(r, 300));
         if (!slideRef.current) continue;
-        const dataUrl = await toPng(slideRef.current, { pixelRatio: 2, cacheBust: true });
-        downloadPng(dataUrl, `slide-${i + 1}.png`);
-        await new Promise((r) => setTimeout(r, 350));
+        const dataUrl = await capturePng(slideRef.current);
+        urls.push(dataUrl);
       }
+      setExportImages(urls);
       setActive(prevActive);
+    } catch (e) {
+      console.error("exportAll", e);
+      setError("Erro ao exportar. Tente novamente.");
     } finally {
       setExporting(false);
     }
@@ -431,10 +492,7 @@ function Index() {
         await new Promise((r) => requestAnimationFrame(() => r(null)));
         await new Promise((r) => setTimeout(r, 250));
         if (!slideRef.current) continue;
-        const dataUrl = await toPng(slideRef.current, {
-          pixelRatio: 2,
-          cacheBust: true,
-        });
+        const dataUrl = await capturePng(slideRef.current);
         if (i > 0) pdf.addPage([pageW, pageH], "portrait");
         pdf.addImage(dataUrl, "PNG", 0, 0, pageW, pageH, undefined, "FAST");
       }
@@ -460,6 +518,12 @@ function Index() {
   const s = slides[active];
   const GOLD = brand.primaryColor;
   const BG = brand.bgColor;
+
+  const activeTypography = TYPOGRAPHY_PRESETS.find(t => t.name === typography) ?? TYPOGRAPHY_PRESETS[5];
+  const activeColorTheme = COLOR_THEMES.find(c => c.name === colorTheme);
+  const effectiveGold = activeColorTheme ? activeColorTheme.color : GOLD;
+  const effectiveTextScale = textSizeScale / 100;
+
   const alignClass =
     s.align === "top"
       ? "justify-start pt-16"
@@ -555,6 +619,21 @@ function Index() {
                   </span>
                 </button>
                 <button
+                  onClick={() => {
+                    const url = shareUrl(getSpaceId());
+                    navigator.clipboard.writeText(url).then(() => {
+                      setShareFlash(true);
+                      setTimeout(() => setShareFlash(false), 2000);
+                    });
+                  }}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10 disabled:opacity-40"
+                  title=            "Copiar link e sincronizar com outro dispositivo"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  <span>{shareFlash ? "Copiado!" : "Sincronizar"}</span>
+                </button>
+                <button
                   onClick={exportAll}
                   disabled={exporting}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10 disabled:opacity-40"
@@ -598,14 +677,14 @@ function Index() {
               <textarea
                 value={insight}
                 onChange={(e) => setInsight(e.target.value)}
-                placeholder="Cole aqui um insight, ideia solta, anotação, trecho de artigo, tweet ou raciocínio. A IA extrai o ângulo e monta o carrossel."
+                placeholder="            Cole aqui seu insight: uma ideia solta, anotação, trecho de artigo, tweet ou raciocínio. A IA extrai o ângulo e monta o carrossel."
                 rows={10}
                 className="w-full resize-y rounded-lg border border-white/10 bg-black/40 p-4 text-sm text-white outline-none focus:border-[color:var(--g)]"
                 style={{ ["--g" as any]: GOLD } as React.CSSProperties}
               />
               {!brandReady && (
                 <p className="mt-3 text-xs text-amber-400">
-                  Configure sua marca primeiro para a IA aplicar tom e contexto certos.
+                  Configure sua marca para a IA aplicar o tom e o visual certos.
                 </p>
               )}
               {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
@@ -624,7 +703,7 @@ function Index() {
                 )}
               </button>
               <p className="mt-3 text-center text-[11px] text-white/40">
-                A IA estrutura gancho, narrativa, virada e CTA aplicando seu branding.
+                A IA estrutura gancho, narrativa, virada e CTA aplicando o branding da sua marca.
               </p>
             </div>
           </div>
@@ -690,11 +769,11 @@ function Index() {
                       return (
                         <>
                           {/* Camada de imagem */}
-                          {hasImg && !split && (
-                            <img
-                              src={s.image!}
-                              alt=""
-                              className="absolute inset-0 h-full w-full object-cover"
+                           {hasImg && !split && (
+                             <img
+                               src={s.image!}
+                               alt=""
+                               className="absolute inset-0 h-full w-full object-cover"
                               style={{ objectPosition: objPos }}
                             />
                           )}
@@ -708,36 +787,14 @@ function Index() {
                             <div
                               className={`absolute inset-y-0 w-1/2 ${imageSide === "left" ? "left-0" : "right-0"}`}
                             >
-                              <img
-                                src={s.image!}
-                                alt=""
-                                className="h-full w-full object-cover"
+                               <img
+                                 src={s.image!}
+                                 alt=""
+                                 className="h-full w-full object-cover"
                                 style={{ objectPosition: objPos }}
                               />
                             </div>
                           )}
-
-                          {/* Elementos decorativos */}
-                          {(s.elements ?? []).map((el) => {
-                            const def = findElement(el.svgId);
-                            if (!def) return null;
-                            return (
-                              <div
-                                key={el.id}
-                                className="pointer-events-none absolute"
-                                style={{
-                                  left: `${el.x}%`,
-                                  top: `${el.y}%`,
-                                  width: `${18 * el.scale}%`,
-                                  aspectRatio: "1 / 1",
-                                  transform: `translate(-50%, -50%) rotate(${el.rotation}deg)`,
-                                  opacity: el.opacity,
-                                  color: el.color,
-                                }}
-                                dangerouslySetInnerHTML={{ __html: def.svg }}
-                              />
-                            );
-                          })}
 
                           {/* Container do texto */}
                           <div
@@ -751,43 +808,48 @@ function Index() {
                               <div
                                 className="font-bold tracking-[0.28em]"
                                 style={{
-                                  color: s.kickerColor ?? GOLD,
-                                  fontSize: 11 * titleScale,
+                                  color: s.kickerColor ?? effectiveGold,
+                                  fontSize: 11 * titleScale * effectiveTextScale,
                                   fontFamily: bodyFont,
                                 }}
                               >
                                 {s.kicker}
                               </div>
                               <h2
-                                className="mt-3 whitespace-pre-line font-bold"
+                                className="mt-3 whitespace-pre-line"
                                 style={{
-                                  fontFamily: brand.fontFamily,
+                                  fontFamily: activeTypography.fontFamily,
+                                  fontWeight: activeTypography.headingWeight,
                                   color: s.titleColor ?? "#ffffff",
-                                  letterSpacing: "-0.01em",
+                                  letterSpacing: activeTypography.headingSpacing,
+                                  textTransform: activeTypography.headingTransform as "none" | "uppercase",
                                   wordSpacing: "normal",
-                                  fontSize: 28 * titleScale,
-                                  lineHeight: 1.1,
+                                  fontSize: 28 * titleScale * effectiveTextScale,
+                                  lineHeight: activeTypography.headingLineHeight,
                                 }}
                               >
-                                {renderRich(s.title, s.highlightColor ?? GOLD)}
+                                {renderRich(s.title, s.highlightColor ?? effectiveGold)}
                               </h2>
                               {s.subtitle && (
                                 <p
-                                  className="mt-3 leading-snug"
+                                  className="mt-3"
                                   style={{
                                     color: s.subtitleColor ?? "rgba(255,255,255,0.8)",
-                                    fontSize: 13 * subScale,
+                                    fontSize: 13 * subScale * effectiveTextScale,
                                     fontFamily: bodyFont,
+                                    fontWeight: activeTypography.bodyWeight,
+                                    letterSpacing: activeTypography.bodySpacing,
+                                    lineHeight: "1.4",
                                   }}
                                 >
-                                  {renderRich(s.subtitle, s.highlightColor ?? GOLD)}
+                                  {renderRich(s.subtitle, s.highlightColor ?? effectiveGold)}
                                 </p>
                               )}
                               {s.buttonText && s.buttonPosition === "inline" && (
                                 <div className="mt-5">
                                   <div
                                     className="w-full rounded-md py-3 text-center text-[13px] font-bold"
-                                    style={{ background: GOLD, color: "#111", fontFamily: bodyFont }}
+                                    style={{ background: effectiveGold, color: "#111", fontFamily: bodyFont }}
                                   >
                                     {s.buttonText}
                                   </div>
@@ -814,7 +876,7 @@ function Index() {
                             >
                               <div
                                 className="w-full rounded-md py-3 text-center text-[13px] font-bold"
-                                style={{ background: GOLD, color: "#111", fontFamily: bodyFont }}
+                                style={{ background: effectiveGold, color: "#111", fontFamily: bodyFont }}
                               >
                                 {s.buttonText}
                               </div>
@@ -843,7 +905,7 @@ function Index() {
                             <div
                               className="mt-2 h-[3px] w-full rounded-full"
                               style={{
-                                background: `linear-gradient(to right, ${GOLD} ${
+                                background: `linear-gradient(to right, ${effectiveGold} ${
                                   ((active + 1) / 8) * 100
                                 }%, rgba(255,255,255,0.15) ${((active + 1) / 8) * 100}%)`,
                               }}
@@ -930,6 +992,79 @@ function Index() {
               </div>
               <div className={editorOpen ? "" : "hidden md:block"}>
 
+              <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-3">
+                <div className="mb-2 text-[10px] font-bold tracking-widest uppercase text-white/50">Design</div>
+
+                <Field label="Tipografia">
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {TYPOGRAPHY_PRESETS.map((t) => (
+                      <button
+                        key={t.name}
+                        onClick={() => setTypography(t.name)}
+                        className={`rounded-md px-1.5 py-1.5 text-[10px] font-semibold transition ${
+                          typography === t.name
+                            ? "bg-white text-black"
+                            : "bg-white/5 text-white/70 hover:bg-white/10"
+                        }`}
+                      >
+                        {t.name}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
+                <Field label="Tema de cores">
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {COLOR_THEMES.map((c) => (
+                      <button
+                        key={c.name}
+                        onClick={() => setColorTheme(c.name)}
+                        className={`flex flex-col items-center gap-1 rounded-md px-1 py-1.5 transition ${
+                          colorTheme === c.name
+                            ? "bg-white/20 ring-1 ring-white/40"
+                            : "bg-white/5 hover:bg-white/10"
+                        }`}
+                        title={c.name}
+                      >
+                        <div
+                          className="h-4 w-4 rounded-full border border-white/20"
+                          style={{ background: c.color }}
+                        />
+                        <span className="text-[8px] leading-tight text-white/60">{c.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() => {
+                        const random = COLOR_THEMES[Math.floor(Math.random() * COLOR_THEMES.length)];
+                        setColorTheme(random.name);
+                      }}
+                      className="flex-1 rounded-md bg-white/5 py-1.5 text-[10px] font-semibold text-white/70 hover:bg-white/10"
+                    >
+                      🎲 Sortear
+                    </button>
+                    <button
+                      onClick={() => setColorTheme("Bege")}
+                      className="flex-1 rounded-md bg-white/5 py-1.5 text-[10px] font-semibold text-white/70 hover:bg-white/10"
+                    >
+                      ✕ Limpar
+                    </button>
+                  </div>
+                </Field>
+
+                <Field label={`Tamanho do texto · ${textSizeScale}%`}>
+                  <input
+                    type="range"
+                    min={50}
+                    max={130}
+                    value={textSizeScale}
+                    onChange={(e) => setTextSizeScale(Number(e.target.value))}
+                    className="w-full accent-white"
+                  />
+                </Field>
+              </div>
+
               <Field label="Kicker">
                 <input
                   value={s.kicker}
@@ -1007,8 +1142,7 @@ function Index() {
                     onChange={(e) => update({ author: e.target.value })}
                     className={inputCls}
                   />
-                </Field>
-              </div>
+              </Field>
 
               <Field label="Alinhamento">
                 <div className="flex gap-2">
@@ -1023,6 +1157,18 @@ function Index() {
                       {a}
                     </button>
                   ))}
+                  <button
+                    onClick={() => {
+                      setSlides((prev) => prev.map((sl) => ({ ...sl, align: s.align })));
+                      setAlignFlash(true);
+                      setTimeout(() => setAlignFlash(false), 800);
+                    }}
+                    className={`flex-1 rounded-md py-2 text-xs font-semibold transition-all duration-200 ${
+                      alignFlash ? "bg-green-500 text-white" : "bg-white/10 text-white/60 hover:bg-white/20"
+                    }`}
+                  >
+                    {alignFlash ? "✓ Pronto!" : "Alinhar todos"}
+                  </button>
                 </div>
               </Field>
 
@@ -1206,14 +1352,7 @@ function Index() {
                 )}
               </Field>
 
-              <Field label={`Elementos decorativos${s.elements?.length ? ` · ${s.elements.length}` : ""}`}>
-                <button
-                  onClick={() => setShowElements(true)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-white/5 py-2 text-xs font-semibold text-white/80 hover:bg-white/10"
-                >
-                  <Shapes className="h-3.5 w-3.5" /> Abrir biblioteca
-                </button>
-                </Field>
+
               </div>
             </aside>
           </div>
@@ -1265,11 +1404,11 @@ function Index() {
           onClose={() => setShowCaption(false)}
         />
       )}
-      {showElements && (
-        <ElementsDialog
-          slide={s}
-          onChange={(patch: Partial<Slide>) => update(patch)}
-          onClose={() => setShowElements(false)}
+
+      {exportImages && (
+        <ExportDialog
+          images={exportImages}
+          onClose={() => setExportImages(null)}
         />
       )}
     </div>
@@ -1293,7 +1432,7 @@ function BrandDialog({
       <div className="w-full max-w-3xl rounded-2xl bg-[#161616] p-6 ring-1 ring-white/10 sm:p-8">
         <h2 className="mb-1 text-lg font-bold">Sua marca</h2>
         <p className="mb-5 text-xs text-white/50">
-          A IA usa essas informações para escrever no seu tom e aplicar seu visual.
+          A IA usa essas informações para escrever no tom da sua marca e aplicar o visual.
         </p>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -1464,7 +1603,7 @@ function LibraryDialog({
           <div>
             <h2 className="text-lg font-bold">Biblioteca de carrosséis</h2>
             <p className="text-xs text-white/50">
-              Seus carrosséis salvos ficam aqui — abra a qualquer hora para exportar.
+              Seus carrosséis salvos ficam aqui — acesse qualquer um para exportar ou editar.
             </p>
           </div>
           <button
@@ -1476,7 +1615,7 @@ function LibraryDialog({
         </div>
         {items.length === 0 ? (
           <div className="rounded-lg border border-dashed border-white/10 p-8 text-center text-sm text-white/40">
-            Nenhum carrossel salvo ainda. Gere um e clique em "Salvar".
+            Nenhum carrossel salvo ainda. Gere um e clique em "Salvar" para guardar.
           </div>
         ) : (
           <ul className="max-h-[60vh] space-y-2 overflow-y-auto">
@@ -1661,9 +1800,9 @@ function CaptionDialog({
       });
       setCaption(data.caption);
       setTags(data.hashtags);
-    } catch (e) {
-      console.error(e);
-      setErr("Não consegui gerar a legenda. Tente novamente.");
+    } catch (e: any) {
+      console.error("CAPTION ERROR:", e);
+      setErr(`Erro: ${String(e?.message || e)}`);
     } finally {
       setLoading(false);
     }
@@ -1691,7 +1830,7 @@ function CaptionDialog({
         </div>
 
         <p className="mb-3 text-xs text-white/60">
-          Gera a legenda usando só o que está nos slides — sem inventar dados.
+          Gera a legenda com base no conteúdo dos slides — sem inventar dados.
           Inclui 5 hashtags relevantes ao tema.
         </p>
 
@@ -1764,219 +1903,95 @@ function CaptionDialog({
   );
 }
 
-function ElementsDialog({
-  slide,
-  onChange,
-  onClose,
-}: {
-  slide: Slide;
-  onChange: (patch: Partial<Slide>) => void;
-  onClose: () => void;
-}) {
-  const [cat, setCat] = useState<ElementDef["category"]>("negocios");
-  const elements = slide.elements ?? [];
-  const [selectedId, setSelectedId] = useState<string | null>(elements[0]?.id ?? null);
-  const selected = elements.find((e) => e.id === selectedId) ?? null;
 
-  const addElement = (def: ElementDef) => {
-    const el: SlideElement = {
-      id: `el_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      svgId: def.id,
-      x: 80,
-      y: 20,
-      scale: 1,
-      rotation: 0,
-      opacity: 0.9,
-      color: "#c2a25b",
+function ExportDialog({ images, onClose }: { images: string[]; onClose: () => void }) {
+  const [idx, setIdx] = useState(0);
+  const count = images.length;
+  const img = images[idx];
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let activeUrl: string | null = null;
+    fetch(img)
+      .then((r) => r.blob())
+      .then((b) => {
+        activeUrl = URL.createObjectURL(b);
+        setBlobUrl(activeUrl);
+      })
+      .catch(() => setBlobUrl(null));
+    return () => {
+      if (activeUrl) URL.revokeObjectURL(activeUrl);
     };
-    const next = [...elements, el];
-    onChange({ elements: next });
-    setSelectedId(el.id);
+  }, [img]);
+
+  const compartilhar = async () => {
+    const res = await fetch(img);
+    const blob = await res.blob();
+    const file = new File([blob], `slide-${idx + 1}.png`, { type: "image/png" });
+    if (navigator.share) {
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch { }
+    }
+    baixar();
   };
 
-  const updateEl = (patch: Partial<SlideElement>) => {
-    if (!selected) return;
-    onChange({
-      elements: elements.map((e) => (e.id === selected.id ? { ...e, ...patch } : e)),
-    });
-  };
-
-  const removeEl = (id: string) => {
-    onChange({ elements: elements.filter((e) => e.id !== id) });
-    if (selectedId === id) setSelectedId(null);
+  const baixar = () => {
+    if (!blobUrl) return;
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = `slide-${idx + 1}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 sm:items-center">
-      <div className="w-full max-w-3xl rounded-2xl bg-[#161616] p-5 ring-1 ring-white/10">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">Elementos decorativos</h2>
-          <button
-            onClick={onClose}
-            className="rounded-md bg-white/5 p-1.5 text-white/60 hover:bg-white/10"
-            aria-label="Fechar"
-          >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      <div className="flex w-full max-w-md flex-col items-center gap-4">
+        <div className="flex items-center justify-between w-full">
+          <h2 className="text-base font-bold text-white">
+            {count > 1 ? `Slide ${idx + 1} de ${count}` : "Seu card"}
+          </h2>
+          <button onClick={onClose} className="rounded-md bg-white/10 p-1.5 text-white/60 hover:bg-white/20" aria-label="Fechar">
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {ELEMENT_CATEGORIES.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setCat(c.key)}
-              className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
-                cat === c.key ? "bg-white text-black" : "bg-white/5 text-white/70 hover:bg-white/10"
-              }`}
-            >
-              {c.label}
+        <div className="w-full overflow-hidden rounded-xl ring-1 ring-white/20">
+          <img src={blobUrl || img} alt="card" className="w-full h-auto block" />
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={compartilhar} className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2 text-sm font-bold text-black">
+            <Share2 className="h-4 w-4" /> Compartilhar
+          </button>
+          {blobUrl && (
+            <button onClick={baixar} className="inline-flex items-center gap-2 rounded-md bg-white/10 px-5 py-2 text-sm font-bold text-white">
+              <Download className="h-4 w-4" /> Baixar
             </button>
-          ))}
-        </div>
-
-        <div className="grid max-h-56 grid-cols-4 gap-2 overflow-y-auto rounded-lg bg-black/30 p-2 sm:grid-cols-6">
-          {elementsByCategory(cat).map((def) => (
-            <button
-              key={def.id}
-              onClick={() => addElement(def)}
-              title={def.name}
-              className="flex aspect-square items-center justify-center rounded-md bg-white/5 p-2 text-white/80 hover:bg-white/15"
-              dangerouslySetInnerHTML={{ __html: def.svg }}
-            />
-          ))}
-        </div>
-
-        <div className="mt-4">
-          <div className="mb-2 text-[11px] tracking-wider uppercase text-white/50">
-            Neste slide · {elements.length}
-          </div>
-          {elements.length === 0 && (
-            <p className="text-xs text-white/40">Nenhum elemento. Clique acima para adicionar.</p>
-          )}
-          {elements.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {elements.map((el) => {
-                const def = findElement(el.svgId);
-                if (!def) return null;
-                const isSel = el.id === selectedId;
-                return (
-                  <div
-                    key={el.id}
-                    className={`relative flex flex-col items-center rounded-md border p-1 ${
-                      isSel ? "border-white bg-white/10" : "border-white/10 bg-white/5"
-                    }`}
-                  >
-                    <button
-                      onClick={() => setSelectedId(el.id)}
-                      className="flex h-10 w-10 items-center justify-center"
-                      style={{ color: el.color }}
-                      dangerouslySetInnerHTML={{ __html: def.svg }}
-                    />
-                    <button
-                      onClick={() => removeEl(el.id)}
-                      className="absolute -top-1.5 -right-1.5 rounded-full bg-red-500 p-0.5 text-white"
-                      aria-label="Remover"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
           )}
         </div>
 
-        {selected && (
-          <div className="mt-4 space-y-3 rounded-lg bg-black/30 p-3">
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <div className="mb-1 text-[10px] tracking-wider uppercase text-white/50">
-                  X · {Math.round(selected.x)}%
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={selected.x}
-                  onChange={(e) => updateEl({ x: Number(e.target.value) })}
-                  className="w-full accent-white"
-                />
-              </label>
-              <label className="block">
-                <div className="mb-1 text-[10px] tracking-wider uppercase text-white/50">
-                  Y · {Math.round(selected.y)}%
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={selected.y}
-                  onChange={(e) => updateEl({ y: Number(e.target.value) })}
-                  className="w-full accent-white"
-                />
-              </label>
-              <label className="block">
-                <div className="mb-1 text-[10px] tracking-wider uppercase text-white/50">
-                  Tamanho · {Math.round(selected.scale * 100)}%
-                </div>
-                <input
-                  type="range"
-                  min={0.2}
-                  max={2.5}
-                  step={0.05}
-                  value={selected.scale}
-                  onChange={(e) => updateEl({ scale: Number(e.target.value) })}
-                  className="w-full accent-white"
-                />
-              </label>
-              <label className="block">
-                <div className="mb-1 text-[10px] tracking-wider uppercase text-white/50">
-                  Rotação · {Math.round(selected.rotation)}°
-                </div>
-                <input
-                  type="range"
-                  min={-180}
-                  max={180}
-                  value={selected.rotation}
-                  onChange={(e) => updateEl({ rotation: Number(e.target.value) })}
-                  className="w-full accent-white"
-                />
-              </label>
-              <label className="block">
-                <div className="mb-1 text-[10px] tracking-wider uppercase text-white/50">
-                  Opacidade · {Math.round(selected.opacity * 100)}%
-                </div>
-                <input
-                  type="range"
-                  min={0.1}
-                  max={1}
-                  step={0.05}
-                  value={selected.opacity}
-                  onChange={(e) => updateEl({ opacity: Number(e.target.value) })}
-                  className="w-full accent-white"
-                />
-              </label>
-              <label className="block">
-                <div className="mb-1 text-[10px] tracking-wider uppercase text-white/50">Cor</div>
-                <input
-                  type="color"
-                  value={selected.color}
-                  onChange={(e) => updateEl({ color: e.target.value })}
-                  className="h-8 w-full cursor-pointer rounded bg-transparent"
-                />
-              </label>
-            </div>
+        <p className="text-center text-xs text-white/50">
+          Use "Compartilhar" para salvar nas Fotos ou Arquivos do iPhone
+        </p>
+
+        {count > 1 && (
+          <div className="flex gap-3">
+            <button disabled={idx === 0} onClick={() => setIdx((p) => p - 1)} className="rounded-md bg-white/10 px-4 py-2 text-sm font-bold text-white disabled:opacity-30">
+              Anterior
+            </button>
+            <button disabled={idx === count - 1} onClick={() => setIdx((p) => p + 1)} className="rounded-md bg-white/10 px-4 py-2 text-sm font-bold text-white disabled:opacity-30">
+              Próximo
+            </button>
           </div>
         )}
 
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={onClose}
-            className="rounded-md bg-white px-4 py-2 text-sm font-bold text-black"
-          >
-            Concluir
-          </button>
-        </div>
+        <button onClick={onClose} className="rounded-md bg-white/10 px-6 py-2 text-sm font-bold text-white">
+          Fechar
+        </button>
       </div>
     </div>
   );
