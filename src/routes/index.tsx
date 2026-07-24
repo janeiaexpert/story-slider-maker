@@ -688,20 +688,32 @@ function Index() {
                 </p>
               )}
               {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
-              <button
-                onClick={handleGenerate}
-                disabled={loading}
-                className="mt-4 w-full rounded-lg py-3 text-sm font-bold disabled:opacity-50"
-                style={{ background: GOLD, color: "#111" }}
-              >
-                {loading ? (
-                  "Gerando carrossel…"
-                ) : (
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <Sparkles className="h-4 w-4" /> Gerar carrossel
-                  </span>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={handleGenerate}
+                  disabled={loading || !insight.trim()}
+                  className="flex-1 rounded-lg py-3 text-sm font-bold disabled:opacity-50"
+                  style={{ background: GOLD, color: "#111" }}
+                >
+                  {loading ? (
+                    "Gerando carrossel…"
+                  ) : (
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <Sparkles className="h-4 w-4" /> Gerar carrossel
+                    </span>
+                  )}
+                </button>
+                {insight.trim() && (
+                  <button
+                    onClick={() => setInsight("")}
+                    disabled={loading}
+                    className="rounded-lg bg-white/5 px-4 py-3 text-sm font-semibold text-white/60 hover:bg-white/10 disabled:opacity-50"
+                    title="Apagar ideia"
+                  >
+                    Limpar
+                  </button>
                 )}
-              </button>
+              </div>
               <p className="mt-3 text-center text-[11px] text-white/40">
                 A IA estrutura gancho, narrativa, virada e CTA aplicando o branding da sua marca.
               </p>
