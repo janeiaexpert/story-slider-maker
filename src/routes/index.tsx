@@ -393,17 +393,23 @@ function Index() {
     const imgs = el.querySelectorAll("img");
     await Promise.all(
       [...imgs].map((img) => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        if (img.complete && img.naturalWidth > 0) {
+          try { (img as HTMLImageElement).decode(); } catch {}
+          return Promise.resolve();
+        }
         return new Promise((resolve) => {
-          img.onload = resolve;
+          img.onload = () => {
+            try { (img as HTMLImageElement).decode().then(() => resolve(null)).catch(() => resolve(null)); } catch { resolve(null); }
+          };
           img.onerror = resolve;
-          setTimeout(resolve, 5000);
+          setTimeout(resolve, 8000);
         });
       }),
     );
     await new Promise((r) => requestAnimationFrame(() => r(null)));
     await new Promise((r) => requestAnimationFrame(() => r(null)));
-    await new Promise((r) => setTimeout(r, 200));
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    await new Promise((r) => setTimeout(r, 500));
   };
 
   const capturePng = async (el: HTMLElement): Promise<string> => {
@@ -441,7 +447,7 @@ function Index() {
   const exportSlide = async (idx?: number) => {
     const i = idx ?? active;
     if (i !== active) setActive(i);
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, 600));
     if (!slideRef.current) return;
     try {
       const dataUrl = await capturePng(slideRef.current);
