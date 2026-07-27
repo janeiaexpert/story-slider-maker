@@ -816,25 +816,25 @@ function Index() {
 
                           {/* Container do texto */}
                           <div
-                            className={`relative z-10 flex h-full flex-col ${
+                            className={`relative z-10 flex h-full flex-col overflow-hidden ${
                               split
-                                ? `w-1/2 px-6 ${imageSide === "left" ? "ml-auto" : "mr-auto"}`
+                                ? `w-1/2 px-5 ${imageSide === "left" ? "ml-auto" : "mr-auto"}`
                                 : "w-full px-7"
                             } ${s.buttonText && s.buttonPosition === "bottom" ? "pb-44" : "pb-20"} ${alignClass}`}
                           >
-                            <div>
+                            <div className="min-w-0">
                               <div
                                 className="font-bold tracking-[0.28em]"
                                 style={{
                                   color: s.kickerColor ?? effectiveGold,
-                                  fontSize: 11 * titleScale * effectiveTextScale,
+                                  fontSize: (split ? 9 : 11) * titleScale * effectiveTextScale,
                                   fontFamily: bodyFont,
                                 }}
                               >
                                 {s.kicker}
                               </div>
                               <h2
-                                className="mt-3 whitespace-pre-line"
+                                className="mt-3 whitespace-pre-line break-words"
                                 style={{
                                   fontFamily: activeTypography.fontFamily,
                                   fontWeight: activeTypography.headingWeight,
@@ -842,7 +842,9 @@ function Index() {
                                   letterSpacing: activeTypography.headingSpacing,
                                   textTransform: activeTypography.headingTransform as "none" | "uppercase",
                                   wordSpacing: "normal",
-                                  fontSize: 28 * titleScale * effectiveTextScale,
+                                  overflowWrap: "anywhere",
+                                  wordBreak: "break-word",
+                                  fontSize: (split ? 22 : 28) * titleScale * effectiveTextScale,
                                   lineHeight: activeTypography.headingLineHeight,
                                 }}
                               >
@@ -853,7 +855,7 @@ function Index() {
                                   className="mt-3"
                                   style={{
                                     color: s.subtitleColor ?? "rgba(255,255,255,0.8)",
-                                    fontSize: 13 * subScale * effectiveTextScale,
+                                    fontSize: (split ? 11 : 13) * subScale * effectiveTextScale,
                                     fontFamily: bodyFont,
                                     fontWeight: activeTypography.bodyWeight,
                                     letterSpacing: activeTypography.bodySpacing,
