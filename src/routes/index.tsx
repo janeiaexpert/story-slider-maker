@@ -180,6 +180,7 @@ function Index() {
   const [typography, setTypography] = useState("Médio");
   const [colorTheme, setColorTheme] = useState("Bege");
   const [textSizeScale, setTextSizeScale] = useState(100);
+  const [generatingImage, setGeneratingImage] = useState(false);
 
   const [exportImages, setExportImages] = useState<string[] | null>(null);
   const slideRef = useRef<HTMLDivElement>(null);
@@ -327,6 +328,31 @@ function Index() {
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
+  };
+
+  const generateImageWithAI = async () => {
+    const slide = slides[active];
+    const parts = [slide.kicker, slide.title, slide.subtitle].filter(Boolean).join(". ");
+    const niche = brand.niche || "professional";
+    const prompt = `Professional ${niche} poster photo, ${parts}. Dark moody lighting, high quality editorial photography, cinematic, 4:5 aspect ratio, no text, no words, no letters, no watermarks`;
+    const encoded = encodeURIComponent(prompt);
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1350&nologo=true&seed=${Date.now()}`;
+    setGeneratingImage(true);
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Falha ao gerar imagem");
+      const blob = await res.blob();
+      const reader = new FileReader();
+      reader.onload = () => {
+        update({ image: reader.result as string });
+        setGeneratingImage(false);
+      };
+      reader.readAsDataURL(blob);
+    } catch (e) {
+      console.error("generateImage", e);
+      setGeneratingImage(false);
+      setError("Erro ao gerar imagem. Tente novamente.");
+    }
   };
 
   const handleGenerate = async () => {
@@ -1246,15 +1272,34 @@ function Index() {
               </Field>
 
               <Field label="Foto de fundo">
-                <label className="block cursor-pointer rounded-md bg-white/5 px-3 py-2 text-center text-xs text-white/70 hover:bg-white/10">
-                  {s.image ? "Trocar foto" : "Enviar foto"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && onImage(e.target.files[0])}
-                  />
-                </label>
+                <div className="flex gap-2">
+                  <label className="block flex-1 cursor-pointer rounded-md bg-white/5 px-3 py-2 text-center text-xs text-white/70 hover:bg-white/10">
+                    {s.image ? "Trocar foto" : "Enviar foto"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && onImage(e.target.files[0])}
+                    />
+                  </label>
+                  <button
+                    onClick={generateImageWithAI}
+                    disabled={generatingImage}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 disabled:opacity-50"
+                    title="Gerar imagem com IA gratuita"
+                  >
+                    {generatingImage ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        Gerando…
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Sparkles className="h-3 w-3" /> Gerar com IA
+                      </span>
+                    )}
+                  </button>
+                </div>
                 {s.image && (
                   <button
                     onClick={() => update({ image: null })}
