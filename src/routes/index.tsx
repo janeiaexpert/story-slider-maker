@@ -576,7 +576,7 @@ function Index() {
             </h1>
           </div>
           <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2">
-            <button type="button"
+            <button
               onClick={() => setCompact((c) => !c)}
               title={compact ? "Modo normal" : "Modo compacto"}
               className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
@@ -584,7 +584,7 @@ function Index() {
               {compact ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
             </button>
             {view === "editor" && (
-              <button type="button"
+              <button
                 onClick={() => setShowCaption(true)}
                 title="Gerar legenda para Instagram"
                 className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
@@ -593,7 +593,7 @@ function Index() {
                 <span className="hidden sm:inline">Legenda</span>
               </button>
             )}
-            <button type="button"
+            <button
               onClick={() => {
                 refreshLibrary();
                 setShowLibrary(true);
@@ -608,14 +608,14 @@ function Index() {
                 </span>
               )}
             </button>
-            <button type="button"
+            <button
               onClick={() => setShowStyles(true)}
               className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
             >
               <Palette className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Estilos</span>
             </button>
-            <button type="button"
+            <button
               onClick={() => setShowBrand(true)}
               className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10"
             >
@@ -624,7 +624,7 @@ function Index() {
             </button>
             {view === "editor" && (
               <>
-                <button type="button"
+                <button
                   onClick={() => {
                     if (
                       confirm(
@@ -640,7 +640,7 @@ function Index() {
                   <Plus className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Novo</span>
                 </button>
-                <button type="button"
+                <button
                   onClick={handleSaveCarousel}
                   disabled={exporting}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-2 text-xs font-semibold hover:bg-white/20 disabled:opacity-40"
@@ -650,7 +650,7 @@ function Index() {
                     {savedFlash ? "Salvo!" : currentId ? "Atualizar" : "Salvar"}
                   </span>
                 </button>
-                <button type="button"
+                <button
                   onClick={() => {
                     const url = shareUrl(getSpaceId());
                     navigator.clipboard.writeText(url).then(() => {
@@ -665,7 +665,7 @@ function Index() {
                   <Share2 className="h-3.5 w-3.5" />
                   <span>{shareFlash ? "Copiado!" : "Sincronizar"}</span>
                 </button>
-                <button type="button"
+                <button
                   onClick={exportAll}
                   disabled={exporting}
                   className="inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-2 text-xs font-semibold hover:bg-white/10 disabled:opacity-40"
@@ -673,7 +673,7 @@ function Index() {
                   <Download className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">PNGs</span>
                 </button>
-                <button type="button"
+                <button
                   onClick={exportPdf}
                   disabled={exporting}
                   className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold disabled:opacity-60 sm:px-4 sm:text-sm"
@@ -721,7 +721,7 @@ function Index() {
               )}
               {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
               <div className="mt-4 flex gap-2">
-                <button type="button"
+                <button
                   onClick={handleGenerate}
                   disabled={loading || !insight.trim()}
                   className="flex-1 rounded-lg py-3 text-sm font-bold disabled:opacity-50"
@@ -736,7 +736,7 @@ function Index() {
                   )}
                 </button>
                 {insight.trim() && (
-                  <button type="button"
+                  <button
                     onClick={() => setInsight("")}
                     disabled={loading}
                     className="rounded-lg bg-white/5 px-4 py-3 text-sm font-semibold text-white/60 hover:bg-white/10 disabled:opacity-50"
@@ -759,7 +759,7 @@ function Index() {
             <div className="hidden md:block md:sticky md:top-4 md:self-start md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
               <div className="flex flex-col gap-2 rounded-xl bg-white/[0.03] p-2 ring-1 ring-white/10">
                 {slides.map((sl, i) => (
-                  <button type="button"
+                  <button
                     key={i}
                     onClick={() => setActive(i)}
                     className={`relative flex items-center gap-2 rounded-md border-2 p-1 text-left transition ${
@@ -967,7 +967,7 @@ function Index() {
               <div className={`mt-6 w-full grid-cols-8 gap-2 md:hidden ${editorOpen ? "hidden" : "grid"}`}>
 
                 {slides.map((_, i) => (
-                  <button type="button"
+                  <button
                     key={i}
                     onClick={() => setActive(i)}
                     className={`aspect-[1080/1350] rounded-md border-2 text-xs font-bold transition ${
@@ -987,14 +987,14 @@ function Index() {
               </div>
 
               <div className={`mt-4 w-full max-w-[420px] gap-2 ${editorOpen ? "hidden md:flex" : "flex"}`}>
-                <button type="button"
+                <button
                   onClick={() => setActive((a) => Math.max(0, a - 1))}
                   disabled={active === 0}
                   className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
                 >
                   <ChevronLeft className="h-4 w-4" /> Anterior
                 </button>
-                <button type="button"
+                <button
                   onClick={() => setActive((a) => Math.min(7, a + 1))}
                   disabled={active === 7}
                   className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-white/5 py-3 text-sm font-semibold disabled:opacity-30"
@@ -1002,7 +1002,7 @@ function Index() {
                   Próximo <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-              <button type="button"
+              <button
                 onClick={() => exportSlide()}
                 className={`mt-2 w-full max-w-[420px] items-center justify-center gap-2 rounded-md py-3 text-sm font-bold ${
                   editorOpen ? "hidden md:inline-flex" : "inline-flex"
@@ -1028,7 +1028,7 @@ function Index() {
                 <h2 className="text-sm font-bold tracking-wider uppercase text-white/70">
                   Editar slide {active + 1}
                 </h2>
-                <button type="button"
+                <button
                   onClick={() => setEditorOpen((o) => !o)}
                   className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 md:hidden"
                   aria-label={editorOpen ? "Encolher edição" : "Expandir edição"}
@@ -1044,7 +1044,7 @@ function Index() {
                 <Field label="Tipografia">
                   <div className="grid grid-cols-5 gap-1.5">
                     {TYPOGRAPHY_PRESETS.map((t) => (
-                      <button type="button"
+                      <button
                         key={t.name}
                         onClick={() => setTypography(t.name)}
                         className={`rounded-md px-1.5 py-1.5 text-[10px] font-semibold transition ${
@@ -1062,7 +1062,7 @@ function Index() {
                 <Field label="Tema de cores">
                   <div className="grid grid-cols-6 gap-1.5">
                     {COLOR_THEMES.map((c) => (
-                      <button type="button"
+                      <button
                         key={c.name}
                         onClick={() => setColorTheme(c.name)}
                         className={`flex flex-col items-center gap-1 rounded-md px-1 py-1.5 transition ${
@@ -1081,7 +1081,7 @@ function Index() {
                     ))}
                   </div>
                   <div className="mt-2 flex gap-2">
-                    <button type="button"
+                    <button
                       onClick={() => {
                         const random = COLOR_THEMES[Math.floor(Math.random() * COLOR_THEMES.length)];
                         setColorTheme(random.name);
@@ -1090,7 +1090,7 @@ function Index() {
                     >
                       🎲 Sortear
                     </button>
-                    <button type="button"
+                    <button
                       onClick={() => setColorTheme("Bege")}
                       className="flex-1 rounded-md bg-white/5 py-1.5 text-[10px] font-semibold text-white/70 hover:bg-white/10"
                     >
@@ -1142,19 +1142,24 @@ function Index() {
                   {([
                     { k: "kickerColor", l: "Kicker", d: GOLD },
                     { k: "titleColor", l: "Título", d: "#ffffff" },
-                    { k: "subtitleColor", l: "Subtítulo", d: "#cccccc" },
+                    { k: "subtitleColor", l: "Subtítulo", d: "#ffffff" },
                     { k: "highlightColor", l: "Marcador", d: GOLD },
-                  ] as const).map((c) => (
-                    <label key={c.k} className="flex flex-col items-center gap-1">
-                      <input
-                        type="color"
-                        value={(s[c.k] as string | undefined) ?? c.d}
-                        onChange={(e) => update({ [c.k]: e.target.value } as Partial<Slide>)}
-                        className="h-8 w-full cursor-pointer rounded bg-transparent"
-                      />
-                      <span className="text-[10px] text-white/60">{c.l}</span>
-                    </label>
-                  ))}
+                  ] as const).map((c) => {
+                    const val = (s[c.k] as string | undefined) ?? c.d;
+                    return (
+                      <div key={c.k} className="flex flex-col items-center gap-1">
+                        <input
+                          type="color"
+                          value={val}
+                          onChange={(e) => update({ [c.k]: e.target.value } as Partial<Slide>)}
+                          className="h-8 w-full cursor-pointer rounded border border-white/10 bg-black/20 p-0"
+                          title={c.l}
+                        />
+                        <span className="text-[10px] text-white/60">{c.l}</span>
+                        <span className="text-[8px] font-mono text-white/30">{val}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </Field>
 
@@ -1193,7 +1198,7 @@ function Index() {
               <Field label="Alinhamento">
                 <div className="flex gap-2">
                   {(["top", "center", "bottom"] as const).map((a) => (
-                    <button type="button"
+                    <button
                       key={a}
                       onClick={() => update({ align: a })}
                       className={`flex-1 rounded-md py-2 text-xs font-semibold capitalize ${
@@ -1203,7 +1208,7 @@ function Index() {
                       {a}
                     </button>
                   ))}
-                  <button type="button"
+                  <button
                     onClick={() => {
                       setSlides((prev) => prev.map((sl) => ({ ...sl, align: s.align })));
                       setAlignFlash(true);
@@ -1226,7 +1231,7 @@ function Index() {
                       { v: "bottom", l: "Rodapé do card" },
                     ] as const
                   ).map((opt) => (
-                    <button type="button"
+                    <button
                       key={opt.v}
                       onClick={() => update({ buttonPosition: opt.v })}
                       className={`flex-1 rounded-md py-2 text-xs font-semibold ${
@@ -1245,7 +1250,7 @@ function Index() {
                     const Icon =
                       g === "top" ? ArrowUp : g === "bottom" ? ArrowDown : g === "left" ? ArrowLeft : ArrowRight;
                     return (
-                      <button type="button"
+                      <button
                         key={g}
                         onClick={() => update({ gradient: g })}
                         className={`inline-flex items-center justify-center gap-1 rounded-md py-2 text-xs font-semibold capitalize ${
@@ -1282,7 +1287,7 @@ function Index() {
                       onChange={(e) => e.target.files?.[0] && onImage(e.target.files[0])}
                     />
                   </label>
-                  <button type="button"
+                  <button
                     onClick={generateImageWithAI}
                     disabled={generatingImage}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 disabled:opacity-50"
@@ -1301,7 +1306,7 @@ function Index() {
                   </button>
                 </div>
                 {s.image && (
-                  <button type="button"
+                  <button
                     onClick={() => update({ image: null })}
                     className="mt-2 w-full text-xs text-white/50 hover:text-white"
                   >
@@ -1318,7 +1323,7 @@ function Index() {
                         const Icon = p === "top" ? ArrowUp : p === "bottom" ? ArrowDown : Circle;
                         const label = p === "top" ? "topo" : p === "bottom" ? "base" : "centro";
                         return (
-                          <button type="button"
+                          <button
                             key={p}
                             onClick={() => update({ imagePos: p })}
                             className={`inline-flex items-center justify-center gap-1 rounded-md py-2 text-xs font-semibold ${
@@ -1336,7 +1341,7 @@ function Index() {
 
               <Field label={`Tamanho do título · ${Math.round((s.titleScale ?? 1) * 100)}%`}>
                 <div className="flex items-center gap-2">
-                  <button type="button"
+                  <button
                     onClick={() => update({ titleScale: Math.max(0.7, (s.titleScale ?? 1) - 0.1) })}
                     className="rounded bg-white/10 p-1.5 text-white/70 hover:bg-white/20"
                     aria-label="Diminuir título"
@@ -1352,7 +1357,7 @@ function Index() {
                     onChange={(e) => update({ titleScale: Number(e.target.value) })}
                     className="flex-1 accent-white"
                   />
-                  <button type="button"
+                  <button
                     onClick={() => update({ titleScale: Math.min(1.6, (s.titleScale ?? 1) + 0.1) })}
                     className="rounded bg-white/10 p-1.5 text-white/70 hover:bg-white/20"
                     aria-label="Aumentar título"
@@ -1364,7 +1369,7 @@ function Index() {
 
               <Field label={`Tamanho do subtítulo · ${Math.round((s.subtitleScale ?? 1) * 100)}%`}>
                 <div className="flex items-center gap-2">
-                  <button type="button"
+                  <button
                     onClick={() => update({ subtitleScale: Math.max(0.7, (s.subtitleScale ?? 1) - 0.1) })}
                     className="rounded bg-white/10 p-1.5 text-white/70 hover:bg-white/20"
                     aria-label="Diminuir subtítulo"
@@ -1380,7 +1385,7 @@ function Index() {
                     onChange={(e) => update({ subtitleScale: Number(e.target.value) })}
                     className="flex-1 accent-white"
                   />
-                  <button type="button"
+                  <button
                     onClick={() => update({ subtitleScale: Math.min(1.6, (s.subtitleScale ?? 1) + 0.1) })}
                     className="rounded bg-white/10 p-1.5 text-white/70 hover:bg-white/20"
                     aria-label="Aumentar subtítulo"
@@ -1399,7 +1404,7 @@ function Index() {
                       { v: "image-right", l: "Foto dir." },
                     ] as const
                   ).map((opt) => (
-                    <button type="button"
+                    <button
                       key={opt.v}
                       onClick={() => update({ layout: opt.v })}
                       className={`rounded-md py-2 text-xs font-semibold ${
@@ -1555,7 +1560,7 @@ function BrandDialog({
               {BRAND_PALETTES.map((p) => {
                 const active = b.primaryColor === p.primary && b.bgColor === p.bg;
                 return (
-                  <button type="button"
+                  <button
                     key={p.name}
                     onClick={() => setB((s) => ({ ...s, primaryColor: p.primary, bgColor: p.bg }))}
                     className={`flex flex-col items-stretch overflow-hidden rounded-md border text-[10px] font-semibold transition ${
@@ -1596,7 +1601,7 @@ function BrandDialog({
               {FONT_PAIRS.map((fp) => {
                 const active = b.fontFamily === fp.heading && b.fontBody === fp.body;
                 return (
-                  <button type="button"
+                  <button
                     key={fp.name}
                     onClick={() => setB((s) => ({ ...s, fontFamily: fp.heading, fontBody: fp.body }))}
                     className={`rounded-md border p-2 text-left text-[11px] transition ${
@@ -1617,13 +1622,13 @@ function BrandDialog({
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button"
+          <button
             onClick={onClose}
             className="rounded-md bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
           >
             Cancelar
           </button>
-          <button type="button"
+          <button
             onClick={() => onSave(b)}
             className="rounded-md px-4 py-2 text-sm font-bold"
             style={{ background: b.primaryColor, color: "#111" }}
@@ -1671,7 +1676,7 @@ function LibraryDialog({
               Seus carrosséis salvos ficam aqui — acesse qualquer um para exportar ou editar.
             </p>
           </div>
-          <button type="button"
+          <button
             onClick={onClose}
             className="rounded-md bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
           >
@@ -1713,13 +1718,13 @@ function LibraryDialog({
                       {first || "—"} · atualizado em {date}
                     </div>
                   </div>
-                  <button type="button"
+                  <button
                     onClick={() => onLoad(item)}
                     className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20"
                   >
                     Abrir
                   </button>
-                  <button type="button"
+                  <button
                     onClick={() => {
                       if (confirm(`Excluir "${item.name}"?`)) onDelete(item.id);
                     }}
@@ -1757,7 +1762,7 @@ function StylesDialog({
               Aplica tipografia, cor primária e fundo em todo o carrossel.
             </p>
           </div>
-          <button type="button"
+          <button
             onClick={onClose}
             className="rounded-md bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
           >
@@ -1771,7 +1776,7 @@ function StylesDialog({
               current.primaryColor === s.primaryColor &&
               current.bgColor === s.bgColor;
             return (
-              <button type="button"
+              <button
                 key={s.name}
                 onClick={() => onPick(s)}
                 className={`overflow-hidden rounded-xl border text-left transition ${
@@ -1886,7 +1891,7 @@ function CaptionDialog({
       <div className="w-full max-w-lg rounded-2xl bg-[#161616] p-6 ring-1 ring-white/10">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">Legenda para Instagram</h2>
-          <button type="button"
+          <button
             onClick={onClose}
             className="rounded-md bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
           >
@@ -1901,7 +1906,7 @@ function CaptionDialog({
 
         <div className="mb-4 flex gap-2">
           {(["AIDA", "PAS"] as const).map((fw) => (
-            <button type="button"
+            <button
               key={fw}
               onClick={() => {
                 setFramework(fw);
@@ -1938,13 +1943,13 @@ function CaptionDialog({
                 {full.length} caracteres · {tags.length} hashtags
               </span>
               <div className="flex gap-2">
-                <button type="button"
+                <button
                   onClick={() => run(framework)}
                   className="rounded-md bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
                 >
                   Gerar de novo
                 </button>
-                <button type="button"
+                <button
                   onClick={copy}
                   className="rounded-md bg-white px-3 py-2 text-xs font-bold text-black"
                 >
@@ -1956,7 +1961,7 @@ function CaptionDialog({
         )}
 
         {!loading && !caption && !err && (
-          <button type="button"
+          <button
             onClick={() => run(framework)}
             className="w-full rounded-md bg-white px-3 py-2 text-sm font-bold text-black"
           >
@@ -2019,7 +2024,7 @@ function ExportDialog({ images, onClose }: { images: string[]; onClose: () => vo
           <h2 className="text-base font-bold text-white">
             {count > 1 ? `Slide ${idx + 1} de ${count}` : "Seu card"}
           </h2>
-          <button type="button" onClick={onClose} className="rounded-md bg-white/10 p-1.5 text-white/60 hover:bg-white/20" aria-label="Fechar">
+          <button onClick={onClose} className="rounded-md bg-white/10 p-1.5 text-white/60 hover:bg-white/20" aria-label="Fechar">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -2029,11 +2034,11 @@ function ExportDialog({ images, onClose }: { images: string[]; onClose: () => vo
         </div>
 
         <div className="flex gap-3">
-          <button type="button" onClick={compartilhar} className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2 text-sm font-bold text-black">
+          <button onClick={compartilhar} className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2 text-sm font-bold text-black">
             <Share2 className="h-4 w-4" /> Compartilhar
           </button>
           {blobUrl && (
-            <button type="button" onClick={baixar} className="inline-flex items-center gap-2 rounded-md bg-white/10 px-5 py-2 text-sm font-bold text-white">
+            <button onClick={baixar} className="inline-flex items-center gap-2 rounded-md bg-white/10 px-5 py-2 text-sm font-bold text-white">
               <Download className="h-4 w-4" /> Baixar
             </button>
           )}
@@ -2045,16 +2050,16 @@ function ExportDialog({ images, onClose }: { images: string[]; onClose: () => vo
 
         {count > 1 && (
           <div className="flex gap-3">
-            <button type="button" disabled={idx === 0} onClick={() => setIdx((p) => p - 1)} className="rounded-md bg-white/10 px-4 py-2 text-sm font-bold text-white disabled:opacity-30">
+            <button disabled={idx === 0} onClick={() => setIdx((p) => p - 1)} className="rounded-md bg-white/10 px-4 py-2 text-sm font-bold text-white disabled:opacity-30">
               Anterior
             </button>
-            <button type="button" disabled={idx === count - 1} onClick={() => setIdx((p) => p + 1)} className="rounded-md bg-white/10 px-4 py-2 text-sm font-bold text-white disabled:opacity-30">
+            <button disabled={idx === count - 1} onClick={() => setIdx((p) => p + 1)} className="rounded-md bg-white/10 px-4 py-2 text-sm font-bold text-white disabled:opacity-30">
               Próximo
             </button>
           </div>
         )}
 
-        <button type="button" onClick={onClose} className="rounded-md bg-white/10 px-6 py-2 text-sm font-bold text-white">
+        <button onClick={onClose} className="rounded-md bg-white/10 px-6 py-2 text-sm font-bold text-white">
           Fechar
         </button>
       </div>
