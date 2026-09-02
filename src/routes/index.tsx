@@ -1142,7 +1142,7 @@ function Index() {
                   {([
                     { k: "kickerColor", l: "Kicker", d: GOLD },
                     { k: "titleColor", l: "Título", d: "#ffffff" },
-                    { k: "subtitleColor", l: "Subtítulo", d: "#cccccc" },
+                    { k: "subtitleColor", l: "Subtítulo", d: "#ffffff" },
                     { k: "highlightColor", l: "Marcador", d: GOLD },
                   ] as const).map((c) => (
                     <label key={c.k} className="flex flex-col items-center gap-1">
@@ -1150,9 +1150,10 @@ function Index() {
                         type="color"
                         value={(s[c.k] as string | undefined) ?? c.d}
                         onChange={(e) => update({ [c.k]: e.target.value } as Partial<Slide>)}
-                        className="h-8 w-full cursor-pointer rounded bg-transparent"
+                        className="h-8 w-full cursor-pointer rounded border border-white/10 p-0"
                       />
                       <span className="text-[10px] text-white/60">{c.l}</span>
+                      <span className="text-[8px] font-mono text-white/30">{(s[c.k] as string | undefined) ?? c.d}</span>
                     </label>
                   ))}
                 </div>
@@ -1188,7 +1189,8 @@ function Index() {
                     onChange={(e) => update({ author: e.target.value })}
                     className={inputCls}
                   />
-              </Field>
+                </Field>
+              </div>
 
               <Field label="Alinhamento">
                 <div className="flex gap-2">
