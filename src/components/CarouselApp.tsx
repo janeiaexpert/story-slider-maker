@@ -87,6 +87,8 @@ type Slide = {
   layout?: "overlay" | "image-left" | "image-right";
   elements?: SlideElement[];
   showProgress?: boolean;
+  wordSpacing?: number; // -4 a 12px
+  letterSpacing?: number; // -0.05 a 0.2em
 };
 
 function migrateSlide(d: Partial<Slide>): Slide {
@@ -113,6 +115,8 @@ function migrateSlide(d: Partial<Slide>): Slide {
     layout: d.layout ?? "overlay",
     elements: d.elements ?? [],
     showProgress: d.showProgress ?? true,
+    wordSpacing: d.wordSpacing ?? 0,
+    letterSpacing: d.letterSpacing ?? 0,
   };
 }
 
@@ -836,9 +840,9 @@ export default function CarouselApp() {
                                   fontFamily: activeTypography.fontFamily,
                                   fontWeight: activeTypography.headingWeight,
                                   color: s.titleColor ?? "#ffffff",
-                                  letterSpacing: activeTypography.headingSpacing,
+                                  letterSpacing: `calc(${activeTypography.headingSpacing} + ${(s.letterSpacing ?? 0)}em)`,
                                   textTransform: activeTypography.headingTransform as "none" | "uppercase",
-                                  wordSpacing: "normal",
+                                  wordSpacing: `${s.wordSpacing ?? 0}px`,
                                   fontSize: 28 * titleScale * effectiveTextScale,
                                   lineHeight: activeTypography.headingLineHeight,
                                 }}
@@ -1024,6 +1028,8 @@ export default function CarouselApp() {
                     subtitleScale: s.subtitleScale,
                     layout: s.layout,
                     showProgress: s.showProgress,
+                    wordSpacing: s.wordSpacing,
+                    letterSpacing: s.letterSpacing,
                   };
                   setSlides((prev) => prev.map((sl) => ({ ...sl, ...style })));
                 }}
@@ -1420,6 +1426,76 @@ export default function CarouselApp() {
                     <Maximize2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
+              </Field>
+
+              <Field label={`Espaçamento entre palavras · ${(s.wordSpacing ?? 0) > 0 ? "+" : ""}${s.wordSpacing ?? 0}px`}>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => update({ wordSpacing: Math.max(-4, (s.wordSpacing ?? 0) - 1) })}
+                    className="rounded bg-white/10 px-2 py-1 text-xs font-bold text-white/70 hover:bg-white/20"
+                  >
+                    Juntar
+                  </button>
+                  <input
+                    type="range"
+                    min={-4}
+                    max={12}
+                    step={0.5}
+                    value={s.wordSpacing ?? 0}
+                    onChange={(e) => update({ wordSpacing: Number(e.target.value) })}
+                    className="flex-1 accent-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => update({ wordSpacing: Math.min(12, (s.wordSpacing ?? 0) + 1) })}
+                    className="rounded bg-white/10 px-2 py-1 text-xs font-bold text-white/70 hover:bg-white/20"
+                  >
+                    Afastar
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSlides((prev) => prev.map((sl) => ({ ...sl, wordSpacing: s.wordSpacing ?? 0 })))}
+                  className="mt-2 w-full rounded-md bg-white/5 py-1.5 text-[11px] font-semibold text-white/60 hover:bg-white/10"
+                >
+                  Aplicar a todos
+                </button>
+              </Field>
+
+              <Field label={`Espaçamento entre letras · ${(s.letterSpacing ?? 0).toFixed(2)}em`}>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => update({ letterSpacing: Math.max(-0.05, (s.letterSpacing ?? 0) - 0.01) })}
+                    className="rounded bg-white/10 px-2 py-1 text-xs font-bold text-white/70 hover:bg-white/20"
+                  >
+                    Juntar
+                  </button>
+                  <input
+                    type="range"
+                    min={-0.05}
+                    max={0.2}
+                    step={0.01}
+                    value={s.letterSpacing ?? 0}
+                    onChange={(e) => update({ letterSpacing: Number(e.target.value) })}
+                    className="flex-1 accent-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => update({ letterSpacing: Math.min(0.2, (s.letterSpacing ?? 0) + 0.01) })}
+                    className="rounded bg-white/10 px-2 py-1 text-xs font-bold text-white/70 hover:bg-white/20"
+                  >
+                    Afastar
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSlides((prev) => prev.map((sl) => ({ ...sl, letterSpacing: s.letterSpacing ?? 0 })))}
+                  className="mt-2 w-full rounded-md bg-white/5 py-1.5 text-[11px] font-semibold text-white/60 hover:bg-white/10"
+                >
+                  Aplicar a todos
+                </button>
               </Field>
 
               <Field label="Estrutura do card">
