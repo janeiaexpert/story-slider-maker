@@ -1144,22 +1144,18 @@ function Index() {
                     { k: "titleColor", l: "Título", d: "#ffffff" },
                     { k: "subtitleColor", l: "Subtítulo", d: "#ffffff" },
                     { k: "highlightColor", l: "Marcador", d: GOLD },
-                  ] as const).map((c) => {
-                    const val = (s[c.k] as string | undefined) ?? c.d;
-                    return (
-                      <div key={c.k} className="flex flex-col items-center gap-1">
-                        <input
-                          type="color"
-                          value={val}
-                          onChange={(e) => update({ [c.k]: e.target.value } as Partial<Slide>)}
-                          className="h-8 w-full cursor-pointer rounded border border-white/10 bg-black/20 p-0"
-                          title={c.l}
-                        />
-                        <span className="text-[10px] text-white/60">{c.l}</span>
-                        <span className="text-[8px] font-mono text-white/30">{val}</span>
-                      </div>
-                    );
-                  })}
+                  ] as const).map((c) => (
+                    <label key={c.k} className="flex flex-col items-center gap-1">
+                      <input
+                        type="color"
+                        value={(s[c.k] as string | undefined) ?? c.d}
+                        onChange={(e) => update({ [c.k]: e.target.value } as Partial<Slide>)}
+                        className="h-8 w-full cursor-pointer rounded border border-white/10 p-0"
+                      />
+                      <span className="text-[10px] text-white/60">{c.l}</span>
+                      <span className="text-[8px] font-mono text-white/30">{(s[c.k] as string | undefined) ?? c.d}</span>
+                    </label>
+                  ))}
                 </div>
               </Field>
 
