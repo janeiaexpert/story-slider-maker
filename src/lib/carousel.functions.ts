@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { getGeminiModel } from "./ai-gateway.server";
 
 const SlideSchema = z.object({
   kicker: z.string(),
@@ -33,11 +33,7 @@ const InputSchema = z.object({
 export const generateCarousel = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY ausente");
-
-    const provider = createLovableAiGatewayProvider(key);
-    const model = provider("google/gemini-3-flash-preview");
+    const model = getGeminiModel("gemini-2.0-flash");
 
     const system = `Você é um estrategista de conteúdo para Instagram, especialista em carrosséis de alta retenção e conversão.
 
@@ -129,11 +125,7 @@ const CaptionInputSchema = z.object({
 export const generateCaption = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => CaptionInputSchema.parse(input))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY ausente");
-
-    const provider = createLovableAiGatewayProvider(key);
-    const model = provider("google/gemini-3-flash-preview");
+    const model = getGeminiModel("gemini-2.0-flash");
 
     const slidesDump = data.slides
       .map(
