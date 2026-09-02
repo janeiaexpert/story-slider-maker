@@ -1,5 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState, useEffect } from "react";
+﻿import { useRef, useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
@@ -42,16 +41,28 @@ import {
   loadLibrary,
   newId,
   upsertCarousel,
-  saveBrandToCloud,
-  loadBrandFromCloud,
 } from "@/lib/carousel-library";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, FolderOpen, Trash2, Minimize2, Maximize2, MessageSquareText, Share2 } from "lucide-react";
 import { getSpaceId, shareUrl } from "@/lib/space-id";
+import {
+  ELEMENTS,
+  ELEMENT_CATEGORIES,
+  type ElementDef,
+  elementsByCategory,
+  findElement,
+} from "@/lib/elements-library";
 
-export const Route = createFileRoute("/")({
-  component: Index,
-});
+export type SlideElement = {
+  id: string;
+  svgId: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  opacity: number;
+  color: string;
+};
 
 type Slide = {
   kicker: string;
@@ -74,6 +85,7 @@ type Slide = {
   titleScale?: number; // 0.7 - 1.6
   subtitleScale?: number;
   layout?: "overlay" | "image-left" | "image-right";
+  elements?: SlideElement[];
 };
 
 function migrateSlide(d: Partial<Slide>): Slide {
@@ -192,17 +204,9 @@ export default function CarouselApp() {
     if (b) {
       setBrand(b);
       setBrandReady(true);
+    } else {
+      setShowBrand(true);
     }
-    loadBrandFromCloud().then((cloud) => {
-      if (cloud) {
-        const merged = { ...(b ?? defaultBrand), ...(cloud as Partial<Brand>) };
-        setBrand(merged);
-        saveBrand(merged);
-        setBrandReady(true);
-      } else if (!b) {
-        setShowBrand(true);
-      }
-    });
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       try {
@@ -224,7 +228,6 @@ export default function CarouselApp() {
   useEffect(() => {
     if (brandReady) {
       saveBrand(brand);
-      saveBrandToCloud(brand);
     }
   }, [brand, brandReady]);
 
@@ -411,7 +414,6 @@ export default function CarouselApp() {
     try {
       return await toPng(el, {
         pixelRatio: 2,
-        useCORS: true,
         cacheBust: true,
       });
     } catch (e) {
@@ -420,7 +422,6 @@ export default function CarouselApp() {
     const { toCanvas } = await import("html-to-image");
     const canvas = await toCanvas(el, {
       pixelRatio: 2,
-      useCORS: true,
       cacheBust: true,
     });
     return canvas.toDataURL("image/png");
