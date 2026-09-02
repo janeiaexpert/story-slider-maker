@@ -86,6 +86,7 @@ type Slide = {
   subtitleScale?: number;
   layout?: "overlay" | "image-left" | "image-right";
   elements?: SlideElement[];
+  showProgress?: boolean;
 };
 
 function migrateSlide(d: Partial<Slide>): Slide {
@@ -111,6 +112,7 @@ function migrateSlide(d: Partial<Slide>): Slide {
     subtitleScale: d.subtitleScale ?? 1,
     layout: d.layout ?? "overlay",
     elements: d.elements ?? [],
+    showProgress: d.showProgress ?? true,
   };
 }
 
@@ -541,7 +543,7 @@ export default function CarouselApp() {
               Fábrica de Carrosséis
             </div>
             <h1 className="text-xl font-semibold">
-              {view === "insight" ? "Cole um insight → IA gera o carrossel" : `${brand.handle} · 8 slides`}
+              {view === "insight" ? "Transforme sua ideia em carrossel em segundos" : `${brand.handle} · 8 cards prontos`}
             </h1>
           </div>
           <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2">
@@ -673,19 +675,19 @@ export default function CarouselApp() {
           <div className="mx-auto max-w-2xl">
             <div className="rounded-2xl bg-white/[0.03] p-6 ring-1 ring-white/10">
               <label className="mb-2 block text-xs tracking-wider uppercase text-white/50">
-                Seu insight bruto
+                Sua ideia, do jeito que está
               </label>
               <textarea
                 value={insight}
                 onChange={(e) => setInsight(e.target.value)}
-                placeholder="            Cole aqui seu insight: uma ideia solta, anotação, trecho de artigo, tweet ou raciocínio. A IA extrai o ângulo e monta o carrossel."
+                placeholder="Ex: 3 erros que matam suas vendas no Instagram e como corrigir hoje. Pode ser rascunho, áudio transcrito, print ou link — a IA encontra o ângulo."
                 rows={10}
                 className="w-full resize-y rounded-lg border border-white/10 bg-black/40 p-4 text-sm text-white outline-none focus:border-[color:var(--g)]"
                 style={{ ["--g" as any]: GOLD } as React.CSSProperties}
               />
               {!brandReady && (
                 <p className="mt-3 text-xs text-amber-400">
-                  Configure sua marca para a IA aplicar o tom e o visual certos.
+                  Dica: configure sua marca em 30s para a IA acertar tom, público e objetivo.
                 </p>
               )}
               {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
@@ -697,10 +699,10 @@ export default function CarouselApp() {
                   style={{ background: GOLD, color: "#111" }}
                 >
                   {loading ? (
-                    "Gerando carrossel…"
+                    "Criando seu carrossel…"
                   ) : (
                     <span className="inline-flex items-center justify-center gap-2">
-                      <Sparkles className="h-4 w-4" /> Gerar carrossel
+                      <Sparkles className="h-4 w-4" /> Criar meu carrossel →
                     </span>
                   )}
                 </button>
@@ -904,26 +906,28 @@ export default function CarouselApp() {
                             </div>
                           )}
 
-                          {/* Footer fixo */}
-                          <div className="absolute right-0 bottom-0 left-0 z-10 px-7 pb-5">
-                            <div
-                              className="flex items-center justify-between text-[11px] text-white/70"
-                              style={{ fontFamily: bodyFont }}
-                            >
-                              <span>
-                                {s.handle} · {s.author}
-                              </span>
-                              <span>{active + 1}/8</span>
+                          {/* Footer / barra de progresso */}
+                          {(s.showProgress ?? true) && (
+                            <div className="absolute right-0 bottom-0 left-0 z-10 px-7 pb-5">
+                              <div
+                                className="flex items-center justify-between text-[11px] text-white/70"
+                                style={{ fontFamily: bodyFont }}
+                              >
+                                <span>
+                                  {s.handle} · {s.author}
+                                </span>
+                                <span>{active + 1}/8</span>
+                              </div>
+                              <div
+                                className="mt-2 h-[3px] w-full rounded-full"
+                                style={{
+                                  background: `linear-gradient(to right, ${effectiveGold} ${
+                                    ((active + 1) / 8) * 100
+                                  }%, rgba(255,255,255,0.15) ${((active + 1) / 8) * 100}%)`,
+                                }}
+                              />
                             </div>
-                            <div
-                              className="mt-2 h-[3px] w-full rounded-full"
-                              style={{
-                                background: `linear-gradient(to right, ${effectiveGold} ${
-                                  ((active + 1) / 8) * 100
-                                }%, rgba(255,255,255,0.15) ${((active + 1) / 8) * 100}%)`,
-                              }}
-                            />
-                          </div>
+                          )}
                         </>
                       );
                     })()}
@@ -993,7 +997,7 @@ export default function CarouselApp() {
             >
               <div className="mb-4 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-bold tracking-wider uppercase text-white/70">
-                  Editar slide {active + 1}
+                  Editar card {active + 1} de 8
                 </h2>
                 <button
                   onClick={() => setEditorOpen((o) => !o)}
@@ -1003,6 +1007,30 @@ export default function CarouselApp() {
                   {editorOpen ? <><Minimize2 className="h-3.5 w-3.5" /> Encolher</> : <><Maximize2 className="h-3.5 w-3.5" /> Expandir</>}
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const style: Partial<Slide> = {
+                    align: s.align,
+                    gradient: s.gradient,
+                    gradientIntensity: s.gradientIntensity,
+                    buttonPosition: s.buttonPosition,
+                    imagePos: s.imagePos,
+                    titleColor: s.titleColor,
+                    subtitleColor: s.subtitleColor,
+                    kickerColor: s.kickerColor,
+                    highlightColor: s.highlightColor,
+                    titleScale: s.titleScale,
+                    subtitleScale: s.subtitleScale,
+                    layout: s.layout,
+                    showProgress: s.showProgress,
+                  };
+                  setSlides((prev) => prev.map((sl) => ({ ...sl, ...style })));
+                }}
+                className="mb-4 flex w-full items-center justify-center gap-1.5 rounded-md border border-white/10 bg-white/5 py-2 text-xs font-semibold text-white/80 hover:bg-white/10"
+              >
+                <Palette className="h-3.5 w-3.5" /> Aplicar estilo deste card a todos
+              </button>
               <div className={editorOpen ? "" : "hidden md:block"}>
 
               <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-3">
@@ -1078,28 +1106,31 @@ export default function CarouselApp() {
                 </Field>
               </div>
 
-              <Field label="Kicker">
+              <Field label="Rótulo superior · 2 a 4 palavras">
                 <input
                   value={s.kicker}
                   onChange={(e) => update({ kicker: e.target.value })}
+                  placeholder="Ex: ERRO COMUM"
                   className={inputCls}
                 />
               </Field>
 
-              <Field label="Título (Enter quebra linha)">
+              <Field label="Título do card · Enter quebra linha">
                 <textarea
                   value={s.title}
                   onChange={(e) => update({ title: e.target.value })}
                   rows={3}
+                  placeholder="Ex: Pare de postar todo dia"
                   className={inputCls}
                 />
               </Field>
 
-              <Field label="Subtítulo">
+              <Field label="Texto de apoio · até 25 palavras">
                 <textarea
                   value={s.subtitle}
                   onChange={(e) => update({ subtitle: e.target.value })}
                   rows={2}
+                  placeholder="Ex: A consistência errada cansa seu público. Faça isso aqui."
                   className={inputCls}
                 />
               </Field>
@@ -1153,18 +1184,20 @@ export default function CarouselApp() {
                 <p className="mt-1 text-[10px] text-white/30">Dica: use **palavra** no título/subtítulo para aplicar a cor Marcador.</p>
               </Field>
 
-              <Field label="Texto do botão (vazio = sem botão)">
+              <Field label="Botão de ação · deixe vazio para ocultar">
                 <input
                   value={s.buttonText}
                   onChange={(e) => update({ buttonText: e.target.value })}
+                  placeholder="Ex: Quero meu diagnóstico"
                   className={inputCls}
                 />
               </Field>
 
-              <Field label="Legenda do botão">
+              <Field label="Texto pequeno abaixo do botão">
                 <input
                   value={s.buttonCaption}
                   onChange={(e) => update({ buttonCaption: e.target.value })}
+                  placeholder="Ex: vaga limitada · link na bio"
                   className={inputCls}
                 />
               </Field>
@@ -1186,7 +1219,7 @@ export default function CarouselApp() {
                 </Field>
               </div>
 
-              <Field label="Alinhamento">
+              <Field label="Posição do texto no card">
                 <div className="flex gap-2">
                   {(["top", "center", "bottom"] as const).map((a) => (
                     <button
@@ -1196,7 +1229,7 @@ export default function CarouselApp() {
                         s.align === a ? "bg-white text-black" : "bg-white/5 text-white/70"
                       }`}
                     >
-                      {a}
+                      {a === "top" ? "Topo" : a === "center" ? "Centro" : "Base"}
                     </button>
                   ))}
                   <button
@@ -1209,12 +1242,12 @@ export default function CarouselApp() {
                       alignFlash ? "bg-green-500 text-white" : "bg-white/10 text-white/60 hover:bg-white/20"
                     }`}
                   >
-                    {alignFlash ? "✓ Pronto!" : "Alinhar todos"}
+                    {alignFlash ? "✓ Pronto!" : "Aplicar a todos"}
                   </button>
                 </div>
               </Field>
 
-              <Field label="Posição do botão">
+              <Field label="Onde o botão aparece">
                 <div className="flex gap-2">
                   {(
                     [
@@ -1233,13 +1266,21 @@ export default function CarouselApp() {
                     </button>
                   ))}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setSlides((prev) => prev.map((sl) => ({ ...sl, buttonPosition: s.buttonPosition })))}
+                  className="mt-2 w-full rounded-md bg-white/5 py-1.5 text-[11px] font-semibold text-white/60 hover:bg-white/10"
+                >
+                  Aplicar a todos
+                </button>
               </Field>
 
-              <Field label="Gradiente (direção)">
+              <Field label="Direção do sombreamento">
                 <div className="grid grid-cols-4 gap-2">
                   {(["top", "bottom", "left", "right"] as const).map((g) => {
                     const Icon =
                       g === "top" ? ArrowUp : g === "bottom" ? ArrowDown : g === "left" ? ArrowLeft : ArrowRight;
+                    const label = g === "top" ? "Cima" : g === "bottom" ? "Baixo" : g === "left" ? "Esq." : "Dir.";
                     return (
                       <button
                         key={g}
@@ -1248,14 +1289,21 @@ export default function CarouselApp() {
                           s.gradient === g ? "bg-white text-black" : "bg-white/5 text-white/70"
                         }`}
                       >
-                        <Icon className="h-3.5 w-3.5" /> {g}
+                        <Icon className="h-3.5 w-3.5" /> {label}
                       </button>
                     );
                   })}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setSlides((prev) => prev.map((sl) => ({ ...sl, gradient: s.gradient })))}
+                  className="mt-2 w-full rounded-md bg-white/5 py-1.5 text-[11px] font-semibold text-white/60 hover:bg-white/10"
+                >
+                  Aplicar a todos
+                </button>
               </Field>
 
-              <Field label={`Intensidade do gradiente · ${s.gradientIntensity}%`}>
+              <Field label={`Intensidade · ${s.gradientIntensity}%`}>
                 <input
                   type="range"
                   min={0}
@@ -1265,6 +1313,13 @@ export default function CarouselApp() {
                   onChange={(e) => update({ gradientIntensity: Number(e.target.value) })}
                   className="w-full accent-white"
                 />
+                <button
+                  type="button"
+                  onClick={() => setSlides((prev) => prev.map((sl) => ({ ...sl, gradientIntensity: s.gradientIntensity })))}
+                  className="mt-2 w-full rounded-md bg-white/5 py-1.5 text-[11px] font-semibold text-white/60 hover:bg-white/10"
+                >
+                  Aplicar a todos
+                </button>
               </Field>
 
               <Field label="Foto de fundo">
@@ -1367,7 +1422,7 @@ export default function CarouselApp() {
                 </div>
               </Field>
 
-              <Field label="Layout do card">
+              <Field label="Estrutura do card">
                 <div className="grid grid-cols-3 gap-2">
                   {(
                     [
@@ -1390,8 +1445,41 @@ export default function CarouselApp() {
                   ))}
                 </div>
                 {!s.image && (s.layout ?? "overlay") !== "overlay" && (
-                  <p className="mt-1 text-[10px] text-white/40">Envie uma foto para o layout dividido aparecer.</p>
+                  <p className="mt-1 text-[10px] text-white/40">Envie uma imagem para ver o layout dividido.</p>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setSlides((prev) => prev.map((sl) => ({ ...sl, layout: s.layout })))}
+                  className="mt-2 w-full rounded-md bg-white/5 py-1.5 text-[11px] font-semibold text-white/60 hover:bg-white/10"
+                >
+                  Aplicar a todos
+                </button>
+              </Field>
+
+              <Field label="Barra de progresso · rodapé">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => update({ showProgress: true })}
+                    className={`flex-1 rounded-md py-2 text-xs font-semibold ${(s.showProgress ?? true) ? "bg-white text-black" : "bg-white/5 text-white/70"}`}
+                  >
+                    Com barra
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => update({ showProgress: false })}
+                    className={`flex-1 rounded-md py-2 text-xs font-semibold ${(s.showProgress ?? true) ? "bg-white/5 text-white/70" : "bg-white text-black"}`}
+                  >
+                    Sem barra
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSlides((prev) => prev.map((sl) => ({ ...sl, showProgress: s.showProgress ?? true })))}
+                  className="mt-2 w-full rounded-md bg-white/5 py-1.5 text-[11px] font-semibold text-white/60 hover:bg-white/10"
+                >
+                  Aplicar a todos
+                </button>
               </Field>
 
 
