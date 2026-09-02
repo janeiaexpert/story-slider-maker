@@ -1036,7 +1036,7 @@ function Index() {
                   {editorOpen ? <><Minimize2 className="h-3.5 w-3.5" /> Encolher</> : <><Maximize2 className="h-3.5 w-3.5" /> Expandir</>}
                 </button>
               </div>
-              <div className={editorOpen ? "" : "hidden md:block"}>
+              <div>
 
               <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-3">
                 <div className="mb-2 text-[10px] font-bold tracking-widest uppercase text-white/50">Design</div>
@@ -1142,7 +1142,7 @@ function Index() {
                   {([
                     { k: "kickerColor", l: "Kicker", d: GOLD },
                     { k: "titleColor", l: "Título", d: "#ffffff" },
-                    { k: "subtitleColor", l: "Subtítulo", d: "#ffffff" },
+                    { k: "subtitleColor", l: "Subtítulo", d: "#cccccc" },
                     { k: "highlightColor", l: "Marcador", d: GOLD },
                   ] as const).map((c) => (
                     <label key={c.k} className="flex flex-col items-center gap-1">
@@ -1150,10 +1150,9 @@ function Index() {
                         type="color"
                         value={(s[c.k] as string | undefined) ?? c.d}
                         onChange={(e) => update({ [c.k]: e.target.value } as Partial<Slide>)}
-                        className="h-8 w-full cursor-pointer rounded border border-white/10 p-0"
+                        className="h-8 w-full cursor-pointer rounded bg-transparent"
                       />
                       <span className="text-[10px] text-white/60">{c.l}</span>
-                      <span className="text-[8px] font-mono text-white/30">{(s[c.k] as string | undefined) ?? c.d}</span>
                     </label>
                   ))}
                 </div>
