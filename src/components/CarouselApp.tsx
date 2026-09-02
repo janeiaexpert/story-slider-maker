@@ -1124,6 +1124,33 @@ export default function CarouselApp() {
                     </label>
                   ))}
                 </div>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const patch = {
+                        kickerColor: s.kickerColor,
+                        titleColor: s.titleColor,
+                        subtitleColor: s.subtitleColor,
+                        highlightColor: s.highlightColor,
+                      } as Partial<Slide>;
+                      setSlides((prev) => prev.map((sl) => ({ ...sl, ...patch })));
+                    }}
+                    className="flex-1 rounded-md bg-white px-3 py-1.5 text-[11px] font-bold text-black hover:bg-white/90"
+                  >
+                    Aplicar a todos os 8 slides
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSlides((prev) => prev.map((sl) => ({ ...sl, kickerColor: undefined, titleColor: undefined, subtitleColor: undefined, highlightColor: undefined })));
+                    }}
+                    className="rounded-md bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-white/60 hover:bg-white/10"
+                  >
+                    Resetar
+                  </button>
+                </div>
+                <p className="mt-1 text-[10px] text-white/30">Dica: use **palavra** no título/subtítulo para aplicar a cor Marcador.</p>
               </Field>
 
               <Field label="Texto do botão (vazio = sem botão)">
