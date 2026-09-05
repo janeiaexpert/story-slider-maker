@@ -173,19 +173,10 @@ export const COLOR_THEMES: ColorTheme[] = [
   { name: "Azul Claro", color: "#38bdf8" },
 ];
 
-const KEY = "carousel-brand-v1";
-
 export function loadBrand(): Brand | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
-    return { ...defaultBrand, ...JSON.parse(raw) };
-  } catch {
-    return null;
-  }
+  return null;
 }
 
-export function saveBrand(b: Brand) {
-  localStorage.setItem(KEY, JSON.stringify(b));
+export function saveBrand(_b: Brand) {
+  // localStorage removed - brand not persisted
 }

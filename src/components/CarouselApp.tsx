@@ -136,7 +136,7 @@ function renderRich(text: string, highlight: string): React.ReactNode {
   });
 }
 
-const STORAGE_KEY = "carousel-creator-v1";
+// localStorage removed - app starts fresh each time
 
 const DIR_MAP: Record<Slide["gradient"], string> = {
   top: "to top",
@@ -213,29 +213,13 @@ export default function CarouselApp() {
     } else {
       setShowBrand(true);
     }
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
-        const data = JSON.parse(raw);
-        if (Array.isArray(data) && data.length === 8) {
-          setSlides(data.map((d: Partial<Slide>) => migrateSlide(d)));
-          setView("editor");
-        }
-      } catch {}
-    }
-    setCompact(localStorage.getItem("carousel-compact-v1") === "1");
+    setCompact(false);
     loadLibrary().then(setLibrary);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("carousel-compact-v1", compact ? "1" : "0");
-  }, [compact]);
+  useEffect(() => {}, [compact]);
 
-  useEffect(() => {
-    if (brandReady) {
-      saveBrand(brand);
-    }
-  }, [brand, brandReady]);
+  useEffect(() => {}, [brand, brandReady]);
 
   useEffect(() => {
     const space = getSpaceId();
@@ -308,9 +292,7 @@ export default function CarouselApp() {
     }
   };
 
-  useEffect(() => {
-    if (view === "editor") localStorage.setItem(STORAGE_KEY, JSON.stringify(slides));
-  }, [slides, view]);
+  useEffect(() => {}, [slides, view]);
 
   const update = (patch: Partial<Slide>) => {
     setSlides((s) => s.map((sl, i) => (i === active ? { ...sl, ...patch } : sl)));
